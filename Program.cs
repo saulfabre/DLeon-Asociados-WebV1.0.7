@@ -18,6 +18,7 @@ builder.Services.AddScoped<SegurosServices>();
 builder.Services.AddScoped<ClientesServices>();
 builder.Services.AddScoped<GarantiasServices>();
 builder.Services.AddScoped<RepuestosServices>();
+builder.Services.AddScoped<ProveedoresStore>();
 
 var app = builder.Build();
 

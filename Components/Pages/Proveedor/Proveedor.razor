@@ -1,7 +1,9 @@
 @page "/Proveedores"
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using DLeon_Asociados_Web.Services
 @rendermode InteractiveServer
 @inject IJSRuntime JS
+@inject ProveedoresStore ProveedoresStore
 
 <AdminLayout ActivePage="suppliers">
     <div class="pagina-proveedores">
@@ -58,7 +60,7 @@
             else
             {
                 <div class="tabla-responsive">
-                    <QuickGrid @key="ClaveFiltros" TGridItem="ProveedorRegistro"
+                    <QuickGrid @key="ClaveFiltros" TGridItem="ProveedoresStore.ProveedorRegistro"
                                Items="@ProveedoresFiltrados.AsQueryable()" Pagination="@Paginacion"
                                Class="table table-bordered table-hover align-middle tabla-proveedores">
                         <PropertyColumn Property="proveedor => proveedor.Nombre" Title="Proveedor" Sortable="true" />
@@ -93,22 +95,15 @@
 
 @code {
     private readonly PaginationState Paginacion = new() { ItemsPerPage = 10 };
-    private readonly List<ProveedorRegistro> Proveedores = new()
-    {
-        new("Repuestos Saul RS", "056-548741-4", "809-876-6412", "Saul12@gmail.com", "Santo Domingo", "Activo"),
-        new("Distribuidor Euwin.BR", "045-458741-1", "809-721-9539", "Euwin@gmail.com", "Puerto Plata", "Inactivo"),
-        new("Repuesto Esthaly.ER", "408-87475-8", "829-987-8745", "Esthaly@gmail.com", "Tenares", "Activo"),
-        new("Repuesto Lola.rd", "098-871857-3", "849-245-8745", "Lola@gmail.com", "Jarabacoa", "Inactivo"),
-        new("Importadora Juan.GD", "056-878451-8", "809-874-5698", "Juan@gmail.com", "San Francisco de Macorís", "Activo")
-    };
+    private IReadOnlyList<ProveedoresStore.ProveedorRegistro> Proveedores => ProveedoresStore.ObtenerTodos();
     private string TextoBusqueda = string.Empty;
     private string EstadoFiltro = string.Empty;
     private string CiudadFiltro = string.Empty;
 
-    private static GridSort<ProveedorRegistro> OrdenEstado { get; } =
-        GridSort<ProveedorRegistro>.ByAscending(proveedor => proveedor.Estado);
+    private static GridSort<ProveedoresStore.ProveedorRegistro> OrdenEstado { get; } =
+        GridSort<ProveedoresStore.ProveedorRegistro>.ByAscending(proveedor => proveedor.Estado);
 
-    private List<ProveedorRegistro> ProveedoresFiltrados => Proveedores
+    private List<ProveedoresStore.ProveedorRegistro> ProveedoresFiltrados => Proveedores
         .Where(proveedor => string.IsNullOrWhiteSpace(TextoBusqueda) ||
             proveedor.Nombre.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
             proveedor.Documento.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
@@ -133,11 +128,5 @@
 
     private Task ImprimirReporte() => JS.InvokeVoidAsync("window.print").AsTask();
 
-    private sealed record ProveedorRegistro(
-        string Nombre,
-        string Documento,
-        string Telefono,
-        string Correo,
-        string Ciudad,
-        string Estado);
+
 }

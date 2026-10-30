@@ -1,6 +1,9 @@
 @page "/Proveedores/Crear"
 @page "/Proveedores/Editar"
 @rendermode InteractiveServer
+@using DLeon_Asociados_Web.Services
+@inject ProveedoresStore ProveedoresStore
+@inject NavigationManager Navigation
 
 <PageTitle>Formulario de proveedor | D'Leon Asociados</PageTitle>
 
@@ -17,52 +20,69 @@
         </header>
 
         <main class="admin-form-content">
-            <form class="admin-form-card" @onsubmit:preventDefault>
+            <form class="admin-form-card" @onsubmit="Guardar" @onsubmit:preventDefault>
                 <div class="admin-form-grid">
                     <div class="admin-form-field">
                         <label for="supplier-name">Nombre del proveedor*</label>
-                        <input id="supplier-name" type="text" placeholder="Ej.: Repuestos Saul RS" required />
+                        <input id="supplier-name" type="text" placeholder="Ej.: Repuestos Saul RS" @bind="Nombre" required />
                     </div>
 
                     <div class="admin-form-field">
                         <label for="supplier-document">Cédula/RNC*</label>
-                        <input id="supplier-document" type="text" placeholder="000-0000000-0" required />
+                        <input id="supplier-document" type="text" placeholder="000-0000000-0" @bind="Documento" required />
                     </div>
 
                     <div class="admin-form-field">
                         <label for="supplier-phone">Teléfono*</label>
-                        <input id="supplier-phone" type="tel" placeholder="809-000-0000" required />
+                        <input id="supplier-phone" type="tel" placeholder="809-000-0000" @bind="Telefono" required />
                     </div>
 
                     <div class="admin-form-field">
                         <label for="supplier-email">Correo electrónico</label>
-                        <input id="supplier-email" type="email" placeholder="proveedor@ejemplo.com" />
+                        <input id="supplier-email" type="email" placeholder="proveedor@ejemplo.com" @bind="Correo" />
                     </div>
 
                     <div class="admin-form-field">
                         <label for="supplier-city">Ciudad*</label>
-                        <input id="supplier-city" type="text" placeholder="Ciudad" required />
+                        <input id="supplier-city" type="text" placeholder="Ciudad" @bind="Ciudad" required />
                     </div>
 
                     <div class="admin-form-field">
                         <label for="supplier-status">Estado</label>
-                        <select id="supplier-status">
-                            <option>Activo</option>
-                            <option>Inactivo</option>
+                        <select id="supplier-status" @bind="Estado">
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
                     </div>
 
                     <div class="admin-form-field admin-form-field-full">
                         <label for="supplier-address">Dirección</label>
-                        <input id="supplier-address" type="text" placeholder="Dirección del proveedor" />
+                        <input id="supplier-address" type="text" placeholder="Dirección del proveedor" @bind="Direccion" />
                     </div>
                 </div>
 
                 <div class="admin-form-actions">
                     <a class="admin-form-cancel" href="/Proveedores">Cancelar</a>
-                    <button class="admin-form-save" type="button">Guardar proveedor</button>
+                    <button class="admin-form-save" type="submit">Guardar proveedor</button>
                 </div>
             </form>
         </main>
     </section>
 </AdminLayout>
+
+@code {
+    private string Nombre = string.Empty;
+    private string Documento = string.Empty;
+    private string Telefono = string.Empty;
+    private string Correo = string.Empty;
+    private string Ciudad = string.Empty;
+    private string Estado = "Activo";
+    private string Direccion = string.Empty;
+
+    private void Guardar()
+    {
+        ProveedoresStore.Agregar(new ProveedoresStore.ProveedorRegistro(
+            Nombre.Trim(), Documento.Trim(), Telefono.Trim(), Correo.Trim(), Ciudad.Trim(), Estado, Direccion.Trim()));
+        Navigation.NavigateTo("/Proveedores");
+    }
+}
