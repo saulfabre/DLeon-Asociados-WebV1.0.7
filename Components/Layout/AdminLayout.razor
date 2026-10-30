@@ -1,0 +1,90 @@
+<CoreUiAssets />
+
+<div class="admin-layout">
+    <aside class="sidebar sidebar-dark sidebar-show sidebar-narrow-unfoldable border-end admin-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <span class="admin-brand-mark">D</span>
+                <span class="admin-brand-copy d-sidebar-narrow-none">D'LEON<br />ASOCIADOS S.R.L</span>
+            </div>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "dashboard" ? "active" : null)" href="/dashboard">
+                    <i class="nav-icon cil-home" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Inicio</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "vehicles" ? "active" : null)" href="/vehiculos">
+                    <i class="nav-icon cil-car-alt" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Vehículos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "customers" ? "active" : null)" href="/clientes">
+                    <i class="nav-icon cil-people" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Clientes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "parts" ? "active" : null)" href="/Repuestos">
+                    <i class="nav-icon cil-basket" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Repuestos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "insurance" ? "active" : null)" href="/Seguros">
+                    <i class="nav-icon cil-shield-alt" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Seguros</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "warranties" ? "active" : null)" href="/Garantias">
+                    <i class="nav-icon cil-check-circle" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Garantías</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ActivePage == "suppliers" ? "active" : null)" href="/Proveedores">
+                    <i class="nav-icon cil-briefcase" aria-hidden="true"></i><span class="d-sidebar-narrow-none">Proveedores</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="dropdown dropend w-100">
+                <button class="btn btn-ghost w-100 d-flex gap-2 p-1 align-items-center admin-user-toggle"
+                        type="button"
+                        aria-expanded="@(IsUserMenuOpen ? "true" : "false")"
+                    aria-label="Opciones de perfil y sesión"
+                    @onclick="ToggleUserMenu">
+                        <span class="avatar avatar-md bg-dark text-white rounded">A</span>
+                    <span class="small text-start admin-user-info">
+                        <span class="d-block fw-semibold">Administrador</span>
+                        <span class="d-block">admin@dleon.com</span>
+                    </span>
+                    <span class="admin-user-options" aria-hidden="true"><span></span><span></span><span></span></span>
+                </button>
+                <ul class="dropdown-menu w-100 @(IsUserMenuOpen ? "show" : null)">
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#"><i class="cil-user" aria-hidden="true"></i>Ver perfil</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="/login"><i class="cil-account-logout" aria-hidden="true"></i>Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        @ChildContent
+    </main>
+</div>
+
+@code {
+    [Parameter]
+    public string ActivePage { get; set; } = string.Empty;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool IsUserMenuOpen { get; set; }
+
+    private void ToggleUserMenu()
+    {
+        IsUserMenuOpen = !IsUserMenuOpen;
+    }
+}

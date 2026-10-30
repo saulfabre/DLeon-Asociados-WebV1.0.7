@@ -1,0 +1,375 @@
+.pagina-seguros {
+    min-height: 100vh;
+    background-color: #f6f8fb;
+    color: #172033;
+    font-family: inherit;
+    font-size: 18px;
+}
+
+
+/* =========================
+   BARRA SUPERIOR
+   ========================= */
+
+.header-seguros {
+    height: 70px;
+    background-color: white;
+    border-bottom: 1px solid #e3e8ef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+}
+
+    .header-seguros h1 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+/* =========================
+   CONTENIDO
+   ========================= */
+
+.contenido-seguros {
+    padding: 28px;
+}
+
+
+/* =========================
+   FILTROS
+   ========================= */
+
+.barra-filtros {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.buscar-seguro {
+    width: 350px;
+    height: 44px;
+    border: 1px solid #d9e1ea;
+    border-radius: 7px;
+    background-color: white;
+    padding: 0 14px;
+    font-size: 18px;
+    outline: none;
+}
+
+    .buscar-seguro:focus {
+        border-color: #2864e8;
+    }
+
+
+.filtro {
+    height: 44px;
+    min-width: 120px;
+    border: 1px solid #d9e1ea;
+    border-radius: 7px;
+    background-color: white;
+    padding: 0 12px;
+    color: #344054;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+    .filtro.fecha {
+        min-width: 120px;
+    }
+
+
+.btn-limpiar {
+    height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 7px;
+    background-color: white;
+    color: #344054;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+.btn-generar {
+    height: 44px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 7px;
+    background-color: #2864e8;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+
+/* =========================
+   TABLA
+   ========================= */
+
+.tabla-seguros {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    font-size: 18px;
+}
+
+
+    /* Encabezado */
+
+    .tabla-seguros thead {
+        background-color: #eef3f8;
+    }
+
+    .tabla-seguros th {
+        height: 52px;
+        padding: 0 20px;
+        text-align: left;
+        color: #344054;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+
+    /* Celdas */
+
+    .tabla-seguros td {
+        height: 52px;
+        padding: 0 20px;
+        border-top: 1px solid #e7ecf1;
+        color: #344054;
+        font-size: 18px;
+    }
+
+
+    /* Filas alternadas */
+
+    .tabla-seguros tbody tr:nth-child(odd) {
+        background-color: white;
+    }
+
+    .tabla-seguros tbody tr:nth-child(even) {
+        background-color: white;
+    }
+
+
+/* =========================
+   VEHÍCULO
+   ========================= */
+
+.vehiculo {
+    color: #172033 !important;
+    font-weight: 700;
+}
+
+
+/* =========================
+   FECHA
+   ========================= */
+
+.fecha-gris {
+    color: #718096 !important;
+}
+
+
+/* =========================
+   DÍAS RESTANTES
+   ========================= */
+
+.pagina-seguros {
+    min-height: 100vh;
+    background: #f6f8fb;
+    color: #172033;
+    font-size: .875rem;
+}
+
+.header-seguros {
+    min-height: 64px;
+    height: auto;
+    gap: 16px;
+    padding: 12px 24px;
+}
+
+.header-seguros h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.contenido-seguros {
+    min-width: 0;
+    padding: 24px;
+}
+
+.contenido-card {
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid #dfe6ee;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.barra-filtros {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.acciones-filtros > .btn {
+    min-height: 40px;
+    white-space: nowrap;
+}
+
+.acciones-filtros {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.busqueda-seguros {
+    display: flex;
+    flex: 1 1 320px;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d9e1ea;
+    border-radius: 6px;
+    background: #fff;
+    color: #64748b;
+}
+
+.busqueda-seguros:focus-within {
+    border-color: #2864e8;
+    box-shadow: 0 0 0 2px rgb(40 100 232 / 12%);
+}
+
+.busqueda-seguros input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #172033;
+}
+
+.filtro-estado {
+    width: auto;
+    min-width: 180px;
+}
+
+.filtro-tipo {
+    width: auto;
+    min-width: 180px;
+}
+
+.tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+}
+
+.tabla-seguros {
+    min-width: 760px;
+    margin-bottom: 0;
+    color: #344054;
+    font-size: .85rem;
+}
+
+.tabla-seguros thead {
+    background: #eef3f8;
+}
+
+.tabla-seguros th,
+.tabla-seguros td {
+    height: auto;
+    padding: 10px 12px;
+    font-size: .85rem;
+}
+
+.tabla-seguros tbody tr:nth-child(odd),
+.tabla-seguros tbody tr:nth-child(even) {
+    background: #fff;
+}
+
+.tabla-seguros .badge.text-bg-warning {
+    background: #fff0c2 !important;
+    color: #7a4c00 !important;
+}
+
+.estado-carga,
+.estado-vacio {
+    display: flex;
+    min-height: 120px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #e3e8ef;
+    background: #fff;
+    color: #64748b;
+}
+
+.cliente-link {
+    text-align: left;
+    text-decoration: none;
+}
+
+.cliente-link:hover {
+    text-decoration: underline;
+}
+
+.datos-cliente-seguro {
+    display: grid;
+    grid-template-columns: minmax(120px, .6fr) 1fr;
+    gap: 10px 18px;
+}
+
+.datos-cliente-seguro dt {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.datos-cliente-seguro dd {
+    min-width: 0;
+    margin: 0;
+    color: #172033;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .header-seguros,
+    .contenido-seguros {
+        padding: 16px;
+    }
+
+    .contenido-card {
+        padding: 16px;
+    }
+
+    .header-seguros {
+        align-items: flex-start;
+    }
+
+    .acciones-filtros {
+        margin-left: 0;
+    }
+}
+
+@media print {
+    .barra-filtros,
+    .header-seguros .btn-crear,
+    ::deep .paginator {
+        display: none !important;
+    }
+
+    .pagina-seguros,
+    .contenido-seguros,
+    .contenido-card {
+        padding: 0;
+        background: #fff;
+    }
+}

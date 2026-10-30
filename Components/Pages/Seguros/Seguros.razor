@@ -1,0 +1,300 @@
+﻿@page "/Seguros"
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using SeguroModel = DLeon_Asociados_Web.Models.Seguros
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject SegurosServices SegurosServices
+@inject VehiculosServices VehiculosServices
+
+<AdminLayout ActivePage="insurance">
+<div class="pagina-seguros">
+    <header class="header-seguros admin-page-header">
+        <h1>Reporte general de seguros</h1>
+        <button class="btn btn-primary btn-crear" type="button" @onclick="AbrirNuevo">
+            <i class="cil-plus" aria-hidden="true"></i> Crear seguro
+        </button>
+    </header>
+
+    <main class="contenido-seguros">
+        <div class="contenido-card">
+        <div class="barra-filtros">
+            <label class="busqueda-seguros">
+                <i class="cil-search" aria-hidden="true"></i>
+                  <input type="search" placeholder="Buscar vehículo, matrícula o número de seguro..."
+                      @bind="TextoBusqueda" @bind:event="oninput" @bind:after="ReiniciarPaginacion" />
+            </label>
+            <select class="form-select filtro-estado" aria-label="Filtrar por estado"
+                    @bind="EstadoFiltro" @bind:after="ReiniciarPaginacion">
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Expira pronto">Expira pronto</option>
+                <option value="Vencido">Vencido</option>
+            </select>
+            <select class="form-select filtro-tipo" aria-label="Filtrar por tipo de seguro"
+                    @bind="TipoFiltro" @bind:after="ReiniciarPaginacion">
+                <option value="">Todos los tipos</option>
+                <option value="Estandar">Estandar</option>
+                <option value="Semi-full">Semi-full</option>
+                <option value="Full">Full</option>
+            </select>
+            <div class="acciones-filtros">
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarFiltros">
+                    Limpiar filtros
+                </button>
+                <button class="btn btn-primary btn-imprimir" type="button" @onclick="ImprimirReporte">
+                    <i class="cil-print" aria-hidden="true"></i> Generar reporte
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorCarga))
+        {
+            <div class="alert alert-danger" role="alert">@ErrorCarga</div>
+        }
+
+        @if (Cargando)
+        {
+            <div class="estado-carga" role="status">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                Cargando seguros...
+            </div>
+        }
+        else if (SegurosFiltrados.Count == 0)
+        {
+            <div class="estado-vacio">
+            @(RegistrosSeguros.Count == 0 ? "No hay seguros registrados." : "No hay seguros que coincidan con los filtros.")
+            </div>
+        }
+        else
+        {
+            <div class="tabla-responsive">
+                <QuickGrid @key="ClaveFiltros" TGridItem="SeguroModel" Items="@SegurosFiltrados.AsQueryable()"
+                           Pagination="@Paginacion" Class="table table-bordered table-hover align-middle tabla-seguros">
+                    <PropertyColumn Property="seguro => seguro.Vehiculo!.NombreCompleto" Title="Vehículo" Sortable="true" />
+                    <PropertyColumn Property="seguro => seguro.Vehiculo!.Matricula" Title="Matrícula" Sortable="true" />
+                    <PropertyColumn Property="seguro => seguro.NumeroSeguro" Title="N.º de seguro" Sortable="true" />
+                    <TemplateColumn Title="Proveedor" Context="seguro">
+                        @seguro.ProveedorNombre (@seguro.TipoProveedor)
+                    </TemplateColumn>
+                    <TemplateColumn Title="Cliente" Context="seguro">
+                        <button class="btn btn-link p-0 cliente-link" type="button"
+                                @onclick="() => VerCliente(seguro)">
+                            @NombreCliente(seguro)
+                        </button>
+                    </TemplateColumn>
+                    <PropertyColumn Property="seguro => seguro.Tipo" Title="Seguro" Sortable="true" />
+                    <PropertyColumn Property="seguro => seguro.FechaInicio" Title="Fecha de inicio" Format="dd/MM/yyyy" Sortable="true" />
+                    <PropertyColumn Property="seguro => seguro.FechaExpiracion" Title="Fecha de expiración" Format="dd/MM/yyyy" Sortable="true" />
+                    <PropertyColumn Property="seguro => seguro.DiasRestantes" Title="Días restantes" Sortable="true" />
+                    <TemplateColumn Title="Estado" Sortable="true" SortBy="OrdenEstado">
+                        @context.Estado
+                    </TemplateColumn>
+                    <TemplateColumn Title="Acciones" Class="no-print" Context="seguro">
+                        <div class="acciones-registro">
+                            <button class="btn btn-sm btn-outline-primary" type="button"
+                                    title="Editar seguro" aria-label="Editar seguro"
+                                    @onclick="() => AbrirEdicion(seguro)">
+                                <i class="cil-pencil" aria-hidden="true"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" type="button"
+                                    title="Eliminar seguro" aria-label="Eliminar seguro"
+                                    @onclick="() => Eliminar(seguro)">
+                                <i class="cil-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </TemplateColumn>
+                </QuickGrid>
+                <Paginator State="@Paginacion" />
+            </div>
+        }
+        </div>
+    </main>
+</div>
+<SegurosFormModal Visible="MostrarModal"
+                  VisibleChanged="CambiarVisibilidadModal"
+                  Seguro="SeguroSeleccionado"
+                  Vehiculos="Vehiculos"
+                  OnSaved="RecargarSeguros" />
+@if (ClienteSeleccionado is not null)
+{
+    <div class="modal-backdrop fade show" @onclick="CerrarDetalleCliente"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+         aria-labelledby="titulo-cliente-seguro" @onclick="CerrarDetalleCliente">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <section class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="titulo-cliente-seguro">Información del cliente</h2>
+                    <button type="button" class="btn-close" aria-label="Cerrar" @onclick="CerrarDetalleCliente"></button>
+                </div>
+                <dl class="modal-body datos-cliente-seguro">
+                    <dt>Nombre</dt><dd>@NombreCliente(ClienteSeleccionado)</dd>
+                    <dt>Documento</dt><dd>@TextoCliente(ClienteSeleccionado.ClienteDocumento)</dd>
+                    <dt>Teléfono</dt><dd>@TextoCliente(ClienteSeleccionado.ClienteTelefono)</dd>
+                    <dt>Correo electrónico</dt><dd>@TextoCliente(ClienteSeleccionado.ClienteCorreo)</dd>
+                    <dt>Dirección</dt><dd>@TextoCliente(ClienteSeleccionado.ClienteDireccion)</dd>
+                </dl>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="CerrarDetalleCliente">Cerrar</button>
+                </div>
+            </section>
+        </div>
+    </div>
+}
+</AdminLayout>
+
+@code {
+    private readonly PaginationState Paginacion = new() { ItemsPerPage = 10 };
+    private List<SeguroModel> RegistrosSeguros = new();
+    private List<Vehiculos> Vehiculos = new();
+    private string TextoBusqueda = string.Empty;
+    private string EstadoFiltro = string.Empty;
+    private string TipoFiltro = string.Empty;
+    private string? ErrorCarga;
+    private bool Cargando = true;
+    private bool MostrarModal;
+    private SeguroModel? SeguroSeleccionado;
+    private SeguroModel? ClienteSeleccionado;
+
+    private List<SeguroModel> SegurosFiltrados => RegistrosSeguros
+        .Where(seguro => string.IsNullOrWhiteSpace(TextoBusqueda) ||
+            seguro.NumeroSeguro.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            seguro.ProveedorNombre.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            seguro.Tipo.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            (seguro.Vehiculo?.Matricula.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (seguro.Vehiculo?.NombreCompleto.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (seguro.Vehiculo?.Marca.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (seguro.Vehiculo?.Modelo.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false))
+        .Where(seguro => string.IsNullOrWhiteSpace(EstadoFiltro) || seguro.Estado == EstadoFiltro)
+        .Where(seguro => string.IsNullOrWhiteSpace(TipoFiltro) ||
+            NormalizarTipo(seguro.Tipo) == NormalizarTipo(TipoFiltro))
+        .ToList();
+
+    private string ClaveFiltros => $"{TextoBusqueda}|{EstadoFiltro}|{TipoFiltro}";
+
+    private static GridSort<SeguroModel> OrdenEstado { get; } = GridSort<SeguroModel>.ByAscending(seguro => seguro.Estado);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var cargaSeguros = SegurosServices.ObtenerTodos();
+            var cargaVehiculos = VehiculosServices.GetList();
+            await Task.WhenAll(cargaSeguros, cargaVehiculos);
+            RegistrosSeguros = await cargaSeguros;
+            Vehiculos = await cargaVehiculos;
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible cargar los seguros. {exception.Message}";
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private async Task RecargarSeguros()
+    {
+        try
+        {
+            ErrorCarga = null;
+            RegistrosSeguros = await SegurosServices.ObtenerTodos();
+            await ReiniciarPaginacion();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible actualizar la lista de seguros. {exception.Message}";
+        }
+    }
+
+    private void AbrirNuevo()
+    {
+        SeguroSeleccionado = null;
+        MostrarModal = true;
+    }
+
+    private void VerCliente(SeguroModel seguro)
+    {
+        ClienteSeleccionado = seguro;
+    }
+
+    private void CerrarDetalleCliente()
+    {
+        ClienteSeleccionado = null;
+    }
+
+    private static string NombreCliente(SeguroModel seguro)
+    {
+        var nombre = string.Join(' ', new[] { seguro.ClienteNombre, seguro.ClienteApellido }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+
+        return string.IsNullOrWhiteSpace(nombre) ? "Cliente sin información" : nombre;
+    }
+
+    private static string TextoCliente(string valor) =>
+        string.IsNullOrWhiteSpace(valor) ? "No registrado" : valor;
+
+    private void AbrirEdicion(SeguroModel seguro)
+    {
+        SeguroSeleccionado = seguro;
+        MostrarModal = true;
+    }
+
+    private Task CambiarVisibilidadModal(bool visible)
+    {
+        MostrarModal = visible;
+        return Task.CompletedTask;
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        TextoBusqueda = string.Empty;
+        EstadoFiltro = string.Empty;
+        TipoFiltro = string.Empty;
+        await ReiniciarPaginacion();
+    }
+
+    private Task ReiniciarPaginacion()
+    {
+        return Paginacion.SetCurrentPageIndexAsync(0);
+    }
+
+    private async Task Eliminar(SeguroModel seguro)
+    {
+        var confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Deseas eliminar el seguro de {seguro.Vehiculo?.NombreCompleto}?");
+
+        if (!confirmar)
+        {
+            return;
+        }
+
+        try
+        {
+            ErrorCarga = null;
+            if (!await SegurosServices.Eliminar(seguro.Id))
+            {
+                ErrorCarga = "El seguro ya no existe o fue eliminado por otro usuario.";
+                return;
+            }
+
+            await RecargarSeguros();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible eliminar el seguro. {exception.Message}";
+        }
+    }
+
+    private async Task ImprimirReporte()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+
+    private static string NormalizarTipo(string tipo) =>
+        string.Join(' ', tipo.Replace('-', ' ').Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .ToUpperInvariant();
+}

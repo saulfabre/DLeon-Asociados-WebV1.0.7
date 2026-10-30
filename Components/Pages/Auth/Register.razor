@@ -1,0 +1,58 @@
+@page "/register"
+@rendermode InteractiveServer
+
+<PageTitle>D'Leon Asociados. Register</PageTitle>
+
+<div class="container">
+    <header class="header">
+        <a href="/" class="header-brand">
+            <span class="header-brand-name">D'LEON</span>
+            <span class="header-brand-subtitle">&amp; ASOCIADOS S.R.L</span>
+        </a>
+
+        <a href="/" class="header-link">Volver al inicio</a>
+    </header>
+
+    <div class="register-section">
+        <div class="register-box">
+            <h1 class="register-title">
+                Crea una cuenta para encontrar tu próximo vehículo.
+            </h1>
+
+            <div class="register-field">
+                <label for="name" class="register-label">Nombre completo*</label>
+                <input id="name" type="text" class="register-input" placeholder="Ej.: Ana García" />
+            </div>
+
+            <div class="register-field">
+                <label for="email" class="register-label">Correo electrónico*</label>
+                <input id="email" type="email" class="register-input" placeholder="nombre@ejemplo.com" />
+            </div>
+
+            <div class="register-field">
+                <label for="password" class="register-label">Contraseña*</label>
+                <input id="password" type="password" class="register-input" placeholder="*****" />
+            </div>
+
+            <div class="register-field">
+                <label for="confirm-password" class="register-label">Confirma tu contraseña*</label>
+                <input id="confirm-password" type="password" class="register-input" placeholder="*****" />
+            </div>
+
+            <p class="register-legal">
+                Al continuar, acepto la
+                <a href="#">Política de Privacidad</a>
+                y los
+                <a href="#">Términos de Uso</a>
+                de D'Leon Asociados.
+            </p>
+
+            <a href="/dashboard" class="register-submit-btn">Crear cuenta</a>
+
+            <p class="register-login">
+                ¿Ya tienes cuenta?
+                <a href="/login">Inicia sesión</a>
+            </p>
+        </div>
+    </div>
+</div>

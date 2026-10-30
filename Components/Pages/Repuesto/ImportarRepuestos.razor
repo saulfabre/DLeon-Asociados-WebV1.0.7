@@ -1,0 +1,38 @@
+@page "/Repuestos/Importar"
+@rendermode InteractiveServer
+
+<PageTitle>Importar repuestos | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="parts">
+    <section class="admin-form-page">
+        <header class="admin-form-header">
+            <div>
+                <a class="admin-form-back" href="/Repuestos">
+                    <i class="cil-arrow-left" aria-hidden="true"></i>
+                    Volver a repuestos
+                </a>
+                <h1>Importar repuestos</h1>
+            </div>
+        </header>
+
+        <main class="admin-form-content">
+            <form class="admin-form-card admin-import-card" @onsubmit:preventDefault>
+                <div class="admin-import-icon" aria-hidden="true">
+                    <i class="cil-cloud-upload"></i>
+                </div>
+                <h2>Selecciona un archivo CSV</h2>
+                <p>El archivo debe incluir los datos del catálogo de repuestos.</p>
+
+                <div class="admin-form-field">
+                    <label for="parts-file">Archivo CSV*</label>
+                    <input id="parts-file" type="file" accept=".csv,text/csv" required />
+                </div>
+
+                <div class="admin-form-actions">
+                    <a class="admin-form-cancel" href="/Repuestos">Cancelar</a>
+                    <button class="admin-form-save" type="button">Importar archivo</button>
+                </div>
+            </form>
+        </main>
+    </section>
+</AdminLayout>

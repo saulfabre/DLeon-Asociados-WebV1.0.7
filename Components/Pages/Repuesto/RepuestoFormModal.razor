@@ -1,0 +1,159 @@
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@using RepuestoModel = DLeon_Asociados_Web.Models.Repuestos
+@inject RepuestosServices RepuestosServices
+
+@if (Visible)
+{
+    <div class="modal-backdrop fade show" @onclick="Cancelar"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+         aria-labelledby="titulo-modal-repuesto" @onclick="Cancelar">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <EditForm Model="Modelo" OnValidSubmit="Guardar">
+                    <DataAnnotationsValidator />
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="titulo-modal-repuesto">
+                            @(Modelo.Id == 0 ? "Agregar repuesto" : "Editar repuesto")
+                        </h2>
+                        <button type="button" class="btn-close" aria-label="Cerrar"
+                                disabled="@Guardando" @onclick="Cancelar"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrWhiteSpace(Error))
+                        {
+                            <div class="alert alert-danger" role="alert">@Error</div>
+                        }
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-nombre">Nombre de la pieza</label>
+                                <InputText id="repuesto-nombre" class="form-control" @bind-Value="Modelo.Nombre" maxlength="120" />
+                                <ValidationMessage For="() => Modelo.Nombre" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-marca">Marca</label>
+                                <InputText id="repuesto-marca" class="form-control" @bind-Value="Modelo.Marca" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.Marca" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-tipo">Tipo</label>
+                                <InputText id="repuesto-tipo" class="form-control" @bind-Value="Modelo.Tipo" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.Tipo" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-tamano">Tamaño o compatibilidad</label>
+                                <InputText id="repuesto-tamano" class="form-control" @bind-Value="Modelo.Tamano" maxlength="120" />
+                                <ValidationMessage For="() => Modelo.Tamano" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-disponibles">Cantidad disponible</label>
+                                <InputNumber id="repuesto-disponibles" class="form-control" @bind-Value="Modelo.Disponibles" min="0" />
+                                <ValidationMessage For="() => Modelo.Disponibles" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="repuesto-precio">Precio unitario</label>
+                                <InputNumber id="repuesto-precio" class="form-control" @bind-Value="Modelo.PrecioUnitario" min="0" step="0.01" />
+                                <ValidationMessage For="() => Modelo.PrecioUnitario" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="repuesto-proveedor">Proveedor</label>
+                                <InputText id="repuesto-proveedor" class="form-control" @bind-Value="Modelo.Proveedor" maxlength="120" />
+                                <ValidationMessage For="() => Modelo.Proveedor" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" disabled="@Guardando" @onclick="Cancelar">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" disabled="@Guardando">
+                            @if (Guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar repuesto</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public RepuestoModel? Repuesto { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private RepuestoModel Modelo { get; set; } = new();
+    private string? Error { get; set; }
+    private bool Guardando { get; set; }
+    private bool VisibleAnterior { get; set; }
+    private int? IdCargado { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Visible && (!VisibleAnterior || IdCargado != Repuesto?.Id))
+        {
+            Modelo = Repuesto is null
+                ? new RepuestoModel()
+                : new RepuestoModel
+                {
+                    Id = Repuesto.Id,
+                    Existe = Repuesto.Existe,
+                    Nombre = Repuesto.Nombre,
+                    Marca = Repuesto.Marca,
+                    Tipo = Repuesto.Tipo,
+                    Tamano = Repuesto.Tamano,
+                    Disponibles = Repuesto.Disponibles,
+                    PrecioUnitario = Repuesto.PrecioUnitario,
+                    Proveedor = Repuesto.Proveedor
+                };
+            Error = null;
+            IdCargado = Repuesto?.Id;
+        }
+
+        VisibleAnterior = Visible;
+    }
+
+    private async Task Guardar()
+    {
+        if (Guardando)
+        {
+            return;
+        }
+
+        Guardando = true;
+        Error = null;
+        try
+        {
+            if (Modelo.Id == 0)
+            {
+                await RepuestosServices.Crear(Modelo);
+            }
+            else if (!await RepuestosServices.Actualizar(Modelo))
+            {
+                Error = "El repuesto ya no existe o fue eliminado por otro usuario.";
+                return;
+            }
+
+            await OnSaved.InvokeAsync();
+            await VisibleChanged.InvokeAsync(false);
+        }
+        catch (Exception exception)
+        {
+            Error = exception.Message;
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private Task Cancelar() => Guardando ? Task.CompletedTask : VisibleChanged.InvokeAsync(false);
+}

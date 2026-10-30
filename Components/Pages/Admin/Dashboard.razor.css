@@ -1,0 +1,261 @@
+.dashboard {
+    background: #f8f9fb;
+    color: #111;
+}
+
+.content {
+    padding: 24px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+}
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-title {
+    margin: 0;
+    color: gray;
+    font-size: 0.9rem;
+}
+
+.stat-icon {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    background: #eff6ff;
+    border-radius: 8px;
+}
+
+.stat-value {
+    margin: 16px 0 8px;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.stat-change {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.stat-change span {
+    color: gray;
+    font-weight: 400;
+}
+
+.stat-change.up {
+    color: #16a34a;
+}
+
+.stat-change.down {
+    color: #dc2626;
+}
+
+.middle {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.card {
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.card-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: gray;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: gray;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dot.blue {
+    background: #2563eb;
+}
+
+.dot.orange {
+    background: #d97706;
+}
+
+.dot.green {
+    background: #16a34a;
+}
+
+.dot.red {
+    background: #dc2626;
+}
+
+.chart-body {
+    display: flex;
+    gap: 12px;
+}
+
+.chart-y {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 180px;
+    font-size: 0.75rem;
+    color: gray;
+}
+
+.chart-area {
+    flex: 1;
+}
+
+.chart-svg {
+    display: block;
+    width: 100%;
+    height: 180px;
+}
+
+.chart-x {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: gray;
+}
+
+.activity-list {
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.activity-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.activity-item .dot {
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.activity-text {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.activity-meta {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    color: gray;
+}
+
+.quick-title {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.quick-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.quick-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    color: black;
+    text-decoration: none;
+    background: white;
+    border-radius: 12px;
+}
+
+.quick-card:hover {
+    background: #f1f5f9;
+}
+
+.quick-icon {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.blue-bg {
+    background: #dbeafe;
+}
+
+.green-bg {
+    background: #dcfce7;
+}
+
+.yellow-bg {
+    background: #fef3c7;
+}
+
+.quick-info {
+    flex: 1;
+}
+
+.quick-name {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.quick-text {
+    margin: 2px 0 0;
+    font-size: 0.75rem;
+    color: gray;
+}
+
+.quick-arrow {
+    color: gray;
+}

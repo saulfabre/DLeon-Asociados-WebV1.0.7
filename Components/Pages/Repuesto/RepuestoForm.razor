@@ -1,0 +1,69 @@
+@page "/Repuestos/Crear"
+@rendermode InteractiveServer
+
+<PageTitle>Agregar repuesto | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="parts">
+    <section class="admin-form-page">
+        <header class="admin-form-header">
+            <div>
+                <a class="admin-form-back" href="/Repuestos">
+                    <i class="cil-arrow-left" aria-hidden="true"></i>
+                    Volver a repuestos
+                </a>
+                <h1>Agregar repuesto</h1>
+            </div>
+        </header>
+
+        <main class="admin-form-content">
+            <form class="admin-form-card" @onsubmit:preventDefault>
+                <div class="admin-form-grid">
+                    <div class="admin-form-field">
+                        <label for="part-name">Nombre de la pieza*</label>
+                        <input id="part-name" type="text" placeholder="Ej.: Filtro de aceite" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="part-brand">Marca*</label>
+                        <input id="part-brand" type="text" placeholder="Marca" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="part-type">Tipo*</label>
+                        <input id="part-type" type="text" placeholder="Ej.: Motor, frenos" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="part-size">Tamaño o compatibilidad</label>
+                        <input id="part-size" type="text" placeholder="Tamaño o modelo compatible" />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="part-quantity">Cantidad disponible*</label>
+                        <input id="part-quantity" type="number" min="0" placeholder="0" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="part-price">Precio unitario*</label>
+                        <input id="part-price" type="number" min="0" step="0.01" placeholder="0.00" required />
+                    </div>
+
+                    <div class="admin-form-field admin-form-field-full">
+                        <label for="part-supplier">Proveedor</label>
+                        <select id="part-supplier">
+                            <option value="">Selecciona un proveedor</option>
+                            <option>Repuestos Saul RS</option>
+                            <option>Distribuidor Euwin.BR</option>
+                            <option>Importadora Juan.GD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-form-actions">
+                    <a class="admin-form-cancel" href="/Repuestos">Cancelar</a>
+                    <button class="admin-form-save" type="button">Guardar repuesto</button>
+                </div>
+            </form>
+        </main>
+    </section>
+</AdminLayout>

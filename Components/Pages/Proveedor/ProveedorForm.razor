@@ -1,0 +1,68 @@
+@page "/Proveedores/Crear"
+@page "/Proveedores/Editar"
+@rendermode InteractiveServer
+
+<PageTitle>Formulario de proveedor | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="suppliers">
+    <section class="admin-form-page">
+        <header class="admin-form-header">
+            <div>
+                <a class="admin-form-back" href="/Proveedores">
+                    <i class="cil-arrow-left" aria-hidden="true"></i>
+                    Volver a proveedores
+                </a>
+                <h1>Información del proveedor</h1>
+            </div>
+        </header>
+
+        <main class="admin-form-content">
+            <form class="admin-form-card" @onsubmit:preventDefault>
+                <div class="admin-form-grid">
+                    <div class="admin-form-field">
+                        <label for="supplier-name">Nombre del proveedor*</label>
+                        <input id="supplier-name" type="text" placeholder="Ej.: Repuestos Saul RS" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="supplier-document">Cédula/RNC*</label>
+                        <input id="supplier-document" type="text" placeholder="000-0000000-0" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="supplier-phone">Teléfono*</label>
+                        <input id="supplier-phone" type="tel" placeholder="809-000-0000" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="supplier-email">Correo electrónico</label>
+                        <input id="supplier-email" type="email" placeholder="proveedor@ejemplo.com" />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="supplier-city">Ciudad*</label>
+                        <input id="supplier-city" type="text" placeholder="Ciudad" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="supplier-status">Estado</label>
+                        <select id="supplier-status">
+                            <option>Activo</option>
+                            <option>Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-field admin-form-field-full">
+                        <label for="supplier-address">Dirección</label>
+                        <input id="supplier-address" type="text" placeholder="Dirección del proveedor" />
+                    </div>
+                </div>
+
+                <div class="admin-form-actions">
+                    <a class="admin-form-cancel" href="/Proveedores">Cancelar</a>
+                    <button class="admin-form-save" type="button">Guardar proveedor</button>
+                </div>
+            </form>
+        </main>
+    </section>
+</AdminLayout>

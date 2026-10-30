@@ -1,0 +1,18 @@
+.modal {
+    overflow-y: auto;
+}
+
+.modal-content {
+    border-radius: 6px;
+}
+
+.modal-body {
+    max-height: min(70vh, 620px);
+    overflow-y: auto;
+}
+
+::deep .validation-message,
+::deep .validation-summary-errors {
+    color: #b42318;
+    font-size: .85rem;
+}

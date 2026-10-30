@@ -1,0 +1,136 @@
+.pagina-clientes {
+    min-height: 100vh;
+    padding: 0;
+    background: #f6f8fb;
+    color: #172033;
+}
+
+.header-clientes,
+.contenido-clientes {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.header-clientes {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: none;
+    margin: 0;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e3e8ef;
+    background: #fff;
+}
+
+.contenido-clientes {
+    max-width: none;
+    margin: 24px;
+    padding: 24px;
+    border: 1px solid #dfe6ee;
+    border-radius: 8px;
+    background: white;
+}
+
+.barra-clientes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.busqueda-clientes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 540px);
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #d9e1ea;
+    border-radius: 6px;
+    color: #718096;
+}
+
+.busqueda-clientes:focus-within {
+    border-color: #2864e8;
+    box-shadow: 0 0 0 3px rgb(40 100 232 / 12%);
+}
+
+.busqueda-clientes input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    color: #253044;
+}
+
+.total-clientes {
+    color: #667085;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.tabla-clientes-responsive {
+    overflow-x: auto;
+}
+
+.tabla-clientes-responsive ::deep .tabla-clientes {
+    min-width: 760px;
+    margin-bottom: 0;
+    border-color: #dfe6ee;
+}
+
+.tabla-clientes-responsive ::deep .tabla-clientes thead {
+    background: #eef3f8;
+    color: #526173;
+}
+
+.tabla-clientes-responsive ::deep .tabla-clientes th {
+    padding: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tabla-clientes-responsive ::deep .tabla-clientes td {
+    padding: 12px;
+    color: #344054;
+}
+
+.acciones-cliente {
+    display: flex;
+    gap: 7px;
+}
+
+.estado-clientes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 28px 0;
+    color: #667085;
+}
+
+.tabla-clientes-responsive ::deep .pagination {
+    margin: 16px 0 0;
+}
+
+@media (max-width: 640px) {
+    .pagina-clientes {
+        padding: 0;
+    }
+
+    .header-clientes {
+        align-items: center;
+        padding: 12px 16px;
+    }
+
+    .contenido-clientes {
+        padding: 16px;
+    }
+
+    .barra-clientes {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

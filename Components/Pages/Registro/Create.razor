@@ -1,0 +1,164 @@
+﻿@page "/clientes"
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+@rendermode InteractiveServer
+@inject ClientesServices ClientesServices
+@inject IJSRuntime JS
+
+<PageTitle>Clientes | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="customers">
+    <section class="pagina-clientes">
+        <header class="header-clientes admin-page-header">
+            <h1>Registro de clientes</h1>
+            <button class="btn btn-primary" type="button" @onclick="AbrirNuevo">
+                <i class="cil-plus" aria-hidden="true"></i>
+                Nuevo cliente
+            </button>
+        </header>
+
+        <main class="contenido-clientes">
+            <div class="barra-clientes">
+                <label class="busqueda-clientes">
+                    <i class="cil-search" aria-hidden="true"></i>
+                    <input type="search" placeholder="Buscar por nombre, documento, teléfono o correo..."
+                           @bind="TextoBusqueda" @bind:event="oninput" @bind:after="ReiniciarPaginacion" />
+                </label>
+                <span class="total-clientes">@ClientesFiltrados.Count clientes</span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(ErrorCarga))
+            {
+                <div class="alert alert-danger" role="alert">@ErrorCarga</div>
+            }
+            else if (Cargando)
+            {
+                <div class="estado-clientes" role="status">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Cargando clientes...
+                </div>
+            }
+            else if (ClientesFiltrados.Count == 0)
+            {
+                <div class="estado-clientes">
+                    @(Clientes.Count == 0 ? "Aún no hay clientes registrados." : "No hay clientes que coincidan con la búsqueda.")
+                </div>
+            }
+            else
+            {
+                <div class="tabla-clientes-responsive">
+                    <QuickGrid @key="TextoBusqueda" TGridItem="Clientes" Items="@ClientesFiltrados.AsQueryable()"
+                               Pagination="@Paginacion" Class="table table-bordered table-hover align-middle tabla-clientes">
+                        <PropertyColumn Property="cliente => cliente.NombreCompleto" Title="Cliente" Sortable="true" />
+                        <PropertyColumn Property="cliente => cliente.Documento" Title="Documento" Sortable="true" />
+                        <PropertyColumn Property="cliente => cliente.Telefono" Title="Teléfono" />
+                        <PropertyColumn Property="cliente => cliente.Correo" Title="Correo electrónico" />
+                        <TemplateColumn Title="Acciones">
+                            <div class="acciones-cliente">
+                                <button class="btn btn-sm btn-outline-primary" type="button" title="Editar cliente"
+                                        aria-label="Editar @context.NombreCompleto" @onclick="() => AbrirEdicion(context)">
+                                    <i class="cil-pencil" aria-hidden="true"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" type="button" title="Eliminar cliente"
+                                        aria-label="Eliminar @context.NombreCompleto" @onclick="() => Eliminar(context)">
+                                    <i class="cil-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="@Paginacion" />
+                </div>
+            }
+        </main>
+    </section>
+
+    <ClientesFormModal Visible="MostrarModal"
+                       VisibleChanged="CambiarVisibilidadModal"
+                       Cliente="ClienteSeleccionado"
+                       OnSaved="RecargarClientes" />
+</AdminLayout>
+
+@code {
+    private readonly PaginationState Paginacion = new() { ItemsPerPage = 10 };
+    private List<Clientes> Clientes = new();
+    private string TextoBusqueda = string.Empty;
+    private string? ErrorCarga;
+    private bool Cargando = true;
+    private bool MostrarModal;
+    private Clientes? ClienteSeleccionado;
+
+    private List<Clientes> ClientesFiltrados => Clientes
+        .Where(TieneDatosVisibles)
+        .Where(cliente => string.IsNullOrWhiteSpace(TextoBusqueda) ||
+            cliente.NombreCompleto.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
+            (cliente.Documento?.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (cliente.Telefono?.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (cliente.Correo?.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false))
+        .ToList();
+
+    private static bool TieneDatosVisibles(Clientes cliente) =>
+        !string.IsNullOrWhiteSpace(cliente.NombreCompleto) ||
+        !string.IsNullOrWhiteSpace(cliente.Documento) ||
+        !string.IsNullOrWhiteSpace(cliente.Telefono) ||
+        !string.IsNullOrWhiteSpace(cliente.Correo);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecargarClientes();
+        Cargando = false;
+    }
+
+    private async Task RecargarClientes()
+    {
+        try
+        {
+            ErrorCarga = null;
+            Clientes = await ClientesServices.ObtenerTodos();
+            await ReiniciarPaginacion();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible cargar los clientes. {exception.Message}";
+        }
+    }
+
+    private async Task ReiniciarPaginacion() => await Paginacion.SetCurrentPageIndexAsync(0);
+
+    private void AbrirNuevo()
+    {
+        ClienteSeleccionado = null;
+        MostrarModal = true;
+    }
+
+    private void AbrirEdicion(Clientes cliente)
+    {
+        ClienteSeleccionado = cliente;
+        MostrarModal = true;
+    }
+
+    private Task CambiarVisibilidadModal(bool visible)
+    {
+        MostrarModal = visible;
+        return Task.CompletedTask;
+    }
+
+    private async Task Eliminar(Clientes cliente)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Deseas eliminar a {cliente.NombreCompleto}?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await ClientesServices.Eliminar(cliente.Id);
+            await RecargarClientes();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible eliminar el cliente. {exception.Message}";
+        }
+    }
+}
+    

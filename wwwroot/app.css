@@ -1,0 +1,623 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: 'Poppins', sans-serif;
+}
+
+body,
+body *:not(i):not([class^="cil-"]):not([class*=" cil-"]) {
+    font-family: 'Poppins', sans-serif !important;
+    letter-spacing: 0 !important;
+}
+
+.admin-layout,
+.admin-layout *:not(i):not([class^="cil-"]):not([class*=" cil-"]) {
+    font-size: 14px !important;
+}
+
+.admin-layout .pagina-seguros,
+.admin-layout .pagina-repuestos,
+.admin-layout .pagina-garantias,
+.admin-layout .pagina-proveedores,
+.admin-layout .pagina {
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+    font-size: 0.875rem;
+}
+
+.admin-layout .header-seguros,
+.admin-layout .header-repuestos,
+.admin-layout .header-garantias,
+.admin-layout .header-proveedores,
+.admin-layout .pagina > .header {
+    min-height: 64px;
+    height: auto;
+    gap: 16px;
+    padding: 12px 24px;
+}
+
+.admin-layout .header-seguros h1,
+.admin-layout .header-repuestos h1,
+.admin-layout .header-garantias h1,
+.admin-layout .header-proveedores h1,
+.admin-layout .pagina > .header h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.admin-layout .header-derecha input {
+    width: clamp(140px, 24vw, 250px);
+    font-size: 0.85rem;
+}
+
+.admin-layout .contenido-seguros,
+.admin-layout .contenido-repuestos,
+.admin-layout .contenido-garantias,
+.admin-layout .contenido-proveedores,
+.admin-layout .pagina > .contenido {
+    min-width: 0;
+    padding: 24px;
+}
+
+.admin-layout .busqueda-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(100%, 460px);
+    min-height: 40px;
+    margin-bottom: 22px;
+    padding: 0 12px;
+    border: 1px solid #d9e1ea;
+    border-radius: 7px;
+    background: #fff;
+    color: #64748b;
+    box-sizing: border-box;
+}
+
+.admin-layout .busqueda-body input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #344054;
+    font: inherit;
+}
+
+.admin-layout .barra-filtros,
+.admin-layout .barra-herramientas,
+.admin-layout .filtros {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-layout .barra-filtros > *,
+.admin-layout .filtros > * {
+    min-width: 0;
+    font-size: 0.85rem;
+}
+
+.admin-layout .buscar-seguro,
+.admin-layout .buscar-garantia,
+.admin-layout .buscar-repuesto,
+.admin-layout .buscar-proveedor {
+    flex: 1 1 220px;
+    width: auto;
+    font-size: 0.85rem;
+}
+
+.admin-layout .filtro,
+.admin-layout .filtros select,
+.admin-layout .btn-limpiar,
+.admin-layout .btn-generar,
+.admin-layout .btn-importar,
+.admin-layout .btn-agregar,
+.admin-layout .barra-herramientas button {
+    min-height: 40px;
+    height: auto;
+    font-size: 0.85rem;
+}
+
+.admin-layout .btn-generar {
+    margin-left: auto;
+}
+
+.admin-layout .tabla-seguros,
+.admin-layout .tabla-garantias,
+.admin-layout .tabla-repuestos,
+.admin-layout .tabla-proveedores,
+.admin-layout .tarjeta table {
+    width: 100%;
+    font-size: 0.85rem;
+}
+
+.admin-layout .tabla-seguros th,
+.admin-layout .tabla-seguros td,
+.admin-layout .tabla-garantias th,
+.admin-layout .tabla-garantias td,
+.admin-layout .tabla-repuestos th,
+.admin-layout .tabla-repuestos td,
+.admin-layout .tabla-proveedores th,
+.admin-layout .tabla-proveedores td,
+.admin-layout .tarjeta th,
+.admin-layout .tarjeta td {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+}
+
+.admin-layout .pagina-seguros .tabla-seguros {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5;
+}
+
+.admin-layout .pagina-proveedores .tabla-proveedores,
+.admin-layout .pagina-repuestos .tabla-repuestos {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5;
+}
+
+.admin-layout .pagina-seguros .tabla-seguros th,
+.admin-layout .pagina-seguros .tabla-seguros td,
+.admin-layout .pagina-proveedores .tabla-proveedores th,
+.admin-layout .pagina-proveedores .tabla-proveedores td,
+.admin-layout .pagina-repuestos .tabla-repuestos th,
+.admin-layout .pagina-repuestos .tabla-repuestos td {
+    padding: 16px 16px !important;
+    font-size: 0.9rem !important;
+}
+
+.admin-layout .pagina-seguros .tabla-seguros th {
+    font-weight: 600;
+}
+
+.admin-layout .pagina-seguros .acciones-registro {
+    display: flex;
+    gap: 8px;
+}
+
+@media print {
+    .admin-layout .pagina-seguros .tabla-seguros th:last-child,
+    .admin-layout .pagina-seguros .tabla-seguros td:last-child {
+        display: none !important;
+    }
+}
+
+.admin-layout .tabla-seguros tbody tr:has(> td):not(:has(> td:not(:empty))),
+.admin-layout .tabla-garantias tbody tr:has(> td):not(:has(> td:not(:empty))),
+.admin-layout .tabla-proveedores tbody tr:has(> td):not(:has(> td:not(:empty))),
+.admin-layout .tabla-repuestos tbody tr:has(> td):not(:has(> td:not(:empty))),
+.admin-layout .tabla-clientes tbody tr:has(> td):not(:has(> td:not(:empty))) {
+    display: none;
+}
+
+.admin-layout .estado {
+    font-size: 0.75rem;
+}
+
+.admin-sidebar .sidebar-footer .dropdown {
+    position: static;
+}
+
+.admin-sidebar .admin-user-options {
+    display: inline-flex;
+    flex-direction: column !important;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.admin-sidebar .admin-user-options span {
+    display: block;
+    width: 4px;
+    height: 4px;
+    flex: 0 0 4px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.admin-sidebar .dropdown-menu.show {
+    position: fixed !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: 16px;
+    left: 248px;
+    z-index: 1080;
+    width: 224px !important;
+    margin: 0;
+    padding: 8px;
+    transform: none !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgb(15 23 42 / 18%);
+}
+
+.admin-sidebar:not(:hover) .dropdown-menu.show {
+    left: 72px;
+}
+
+.admin-sidebar .dropdown-menu.show .dropdown-item {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 5px;
+    color: #334155;
+    text-decoration: none;
+}
+
+.admin-sidebar .dropdown-menu.show .dropdown-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.admin-layout .estado-expira i {
+    margin-right: 6px;
+}
+
+.admin-layout header.admin-page-header {
+    width: 100%;
+    height: 72px;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-sizing: border-box;
+    padding: 0 24px;
+    border-bottom: 1px solid #e3e8ef;
+    background: #fff;
+}
+
+.admin-layout header.admin-page-header h1,
+.admin-layout header.admin-page-header .titulo {
+    margin: 0;
+    color: #172033;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.admin-layout .header-dashboard {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e3e8ef;
+    background: #fff;
+}
+
+.admin-layout .header-dashboard h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.admin-layout .pagina .tarjetas {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-layout .pagina .tarjetas .tarjeta {
+    width: auto !important;
+    min-width: 0;
+}
+
+.admin-form-page {
+    min-height: 100vh;
+    background: #f6f8fb;
+    color: #172033;
+}
+
+.admin-form-header {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e3e8ef;
+    background: #fff;
+}
+
+.admin-form-header h1 {
+    margin: 6px 0 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.admin-form-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #526173;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.admin-form-back:hover {
+    color: #2864e8;
+}
+
+.admin-form-content {
+    width: min(100% - 48px, 900px);
+    margin: 24px auto;
+}
+
+.admin-form-card {
+    padding: 24px;
+    border: 1px solid #dfe6ee;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgb(23 32 51 / 4%);
+}
+
+.admin-form-description {
+    margin: 0 0 22px;
+    color: #718096;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.admin-form-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.admin-form-field-full {
+    grid-column: 1 / -1;
+}
+
+.admin-form-field label {
+    color: #344054;
+    font-weight: 600;
+}
+
+.admin-form-field input,
+.admin-form-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #d9e1ea;
+    border-radius: 7px;
+    background: #fff;
+    color: #253044;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-form-field input:focus,
+.admin-form-field select:focus {
+    border-color: #2864e8;
+    outline: 2px solid rgb(40 100 232 / 15%);
+}
+
+.admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid #e8edf2;
+}
+
+.admin-form-cancel,
+.admin-form-save {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 7px;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin-form-cancel {
+    background: #eef2f6;
+    color: #344054;
+}
+
+.admin-form-save {
+    background: #2864e8;
+    color: #fff;
+}
+
+.admin-form-save:hover {
+    background: #1f55cc;
+}
+
+.admin-import-card {
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.admin-import-icon {
+    color: #2864e8;
+    font-size: 1.8rem;
+}
+
+.admin-import-card h2 {
+    margin: 12px 0 6px;
+    font-size: 1.1rem;
+}
+
+.admin-import-card > p {
+    margin: 0 0 24px;
+    color: #718096;
+}
+
+@media print {
+    @page {
+        size: landscape;
+        margin: 12mm;
+    }
+
+    body,
+    .admin-layout,
+    .admin-main,
+    .pagina-seguros,
+    .pagina-garantias {
+        width: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        color: #172033 !important;
+    }
+
+    .admin-sidebar,
+    .barra-filtros,
+    .header-derecha {
+        display: none !important;
+    }
+
+    .header-seguros,
+    .header-garantias {
+        height: auto !important;
+        padding: 0 0 12px !important;
+        border-bottom: 1px solid #9ca3af !important;
+        background: #fff !important;
+    }
+
+    .header-seguros h1,
+    .header-garantias h1 {
+        color: #172033 !important;
+        font-size: 18pt !important;
+    }
+
+    .contenido-seguros,
+    .contenido-garantias {
+        padding: 14px 0 0 !important;
+        overflow: visible !important;
+    }
+
+    .tabla-seguros,
+    .tabla-garantias {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        background: #fff !important;
+        font-size: 9pt !important;
+    }
+
+    .tabla-seguros thead,
+    .tabla-garantias thead {
+        display: table-header-group;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .tabla-seguros tr,
+    .tabla-garantias tr {
+        break-inside: avoid;
+    }
+
+    .tabla-seguros th,
+    .tabla-seguros td,
+    .tabla-garantias th,
+    .tabla-garantias td {
+        height: auto !important;
+        padding: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #fff !important;
+        color: #172033 !important;
+        font-size: 9pt !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-layout .header-seguros,
+    .admin-layout .header-repuestos,
+    .admin-layout .header-garantias,
+    .admin-layout .header-proveedores,
+    .admin-layout .admin-page-header,
+    .admin-layout .pagina > .header {
+        flex-wrap: wrap;
+    }
+
+    .admin-layout .pagina .tarjetas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-form-content {
+        width: calc(100% - 32px);
+        margin: 16px auto;
+    }
+
+    .admin-form-card {
+        padding: 18px;
+    }
+
+    .admin-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-form-field-full {
+        grid-column: auto;
+    }
+
+    .admin-layout .header-seguros,
+    .admin-layout .header-repuestos,
+    .admin-layout .header-garantias,
+    .admin-layout .header-proveedores,
+    .admin-layout .admin-page-header,
+    .admin-layout .pagina > .header {
+        align-items: flex-start;
+        padding: 12px 16px;
+    }
+
+    .admin-layout .header-derecha {
+        width: 100%;
+    }
+
+    .admin-layout .header-derecha input {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+    }
+
+    .admin-layout .contenido-seguros,
+    .admin-layout .contenido-repuestos,
+    .admin-layout .contenido-garantias,
+    .admin-layout .contenido-proveedores,
+    .admin-layout .pagina > .contenido {
+        padding: 16px;
+    }
+
+    .admin-layout .tabla-seguros,
+    .admin-layout .tabla-garantias,
+    .admin-layout .tabla-repuestos,
+    .admin-layout .tabla-proveedores,
+    .admin-layout .tarjeta table {
+        min-width: 680px;
+    }
+
+    .admin-layout .contenido-seguros,
+    .admin-layout .contenido-repuestos,
+    .admin-layout .contenido-garantias,
+    .admin-layout .contenido-proveedores,
+    .admin-layout .tarjeta {
+        overflow-x: auto;
+    }
+}

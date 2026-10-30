@@ -1,0 +1,141 @@
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@inject ClientesServices ClientesServices
+
+@if (Visible)
+{
+    <div class="modal-backdrop fade show" @onclick="Cancelar"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+         aria-labelledby="titulo-modal-cliente" @onclick="Cancelar">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <EditForm Model="Modelo" OnValidSubmit="Guardar">
+                    <DataAnnotationsValidator />
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="titulo-modal-cliente">@(Modelo.Id == 0 ? "Nuevo cliente" : "Editar cliente")</h2>
+                        <button type="button" class="btn-close" aria-label="Cerrar" disabled="@Guardando" @onclick="Cancelar"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (!string.IsNullOrWhiteSpace(Error))
+                        {
+                            <div class="alert alert-danger" role="alert">@Error</div>
+                        }
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="cliente-nombre">Nombre</label>
+                                <InputText id="cliente-nombre" class="form-control" @bind-Value="Modelo.Nombre" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.Nombre" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="cliente-apellido">Apellido</label>
+                                <InputText id="cliente-apellido" class="form-control" @bind-Value="Modelo.Apellido" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.Apellido" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="cliente-documento">Cédula / Documento</label>
+                                <InputText id="cliente-documento" class="form-control" @bind-Value="Modelo.Documento" maxlength="40" />
+                                <ValidationMessage For="() => Modelo.Documento" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="cliente-telefono">Teléfono</label>
+                                <InputText id="cliente-telefono" class="form-control" @bind-Value="Modelo.Telefono" maxlength="30" />
+                                <ValidationMessage For="() => Modelo.Telefono" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="cliente-correo">Correo electrónico</label>
+                                <InputText id="cliente-correo" type="email" class="form-control" @bind-Value="Modelo.Correo" maxlength="150" />
+                                <ValidationMessage For="() => Modelo.Correo" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="cliente-direccion">Dirección residencial</label>
+                                <InputTextArea id="cliente-direccion" class="form-control" @bind-Value="Modelo.Direccion" maxlength="250" rows="2" />
+                                <ValidationMessage For="() => Modelo.Direccion" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" disabled="@Guardando" @onclick="Cancelar">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@Guardando">
+                            @(Guardando ? "Guardando..." : "Guardar cliente")
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public Clientes? Cliente { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback<Clientes> OnClienteSaved { get; set; }
+
+    private Clientes Modelo { get; set; } = new();
+    private string? Error { get; set; }
+    private bool Guardando { get; set; }
+    private bool VisibleAnterior { get; set; }
+    private int? IdCargado { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Visible && (!VisibleAnterior || IdCargado != Cliente?.Id))
+        {
+            Modelo = Cliente is null
+                ? new Clientes()
+                : new Clientes
+                {
+                    Id = Cliente.Id,
+                    Nombre = Cliente.Nombre,
+                    Apellido = Cliente.Apellido,
+                    Documento = Cliente.Documento,
+                    Telefono = Cliente.Telefono,
+                    Correo = Cliente.Correo,
+                    Direccion = Cliente.Direccion,
+                    NombreCompleto = Cliente.NombreCompleto
+                };
+            Error = null;
+            IdCargado = Cliente?.Id;
+        }
+
+        VisibleAnterior = Visible;
+    }
+
+    private async Task Guardar()
+    {
+        if (Guardando)
+        {
+            return;
+        }
+
+        Guardando = true;
+        Error = null;
+        try
+        {
+            if (Modelo.Id == 0)
+            {
+                await ClientesServices.Crear(Modelo);
+            }
+            else if (!await ClientesServices.Actualizar(Modelo))
+            {
+                Error = "El cliente ya no existe o fue eliminado por otro usuario.";
+                return;
+            }
+
+            await OnClienteSaved.InvokeAsync(Modelo);
+            await OnSaved.InvokeAsync();
+            await VisibleChanged.InvokeAsync(false);
+        }
+        catch (Exception exception)
+        {
+            Error = exception.Message;
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private Task Cancelar() => Guardando ? Task.CompletedTask : VisibleChanged.InvokeAsync(false);
+}

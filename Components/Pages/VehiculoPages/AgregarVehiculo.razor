@@ -1,0 +1,597 @@
+@page "/vehiculo/agregar"
+@using DLeon_Asociados_Web.Components.Layout
+@using DLeon_Asociados_Web.Services
+@using Microsoft.AspNetCore.Components.Forms
+@rendermode InteractiveServer
+@inject DLeon_Asociados_Web.Services.VehiculosServices VehiculosServices
+@inject IWebHostEnvironment HostEnvironment
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Agregar Vehículo | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="vehicles">
+<div class="pagina-agregar">
+
+    <!-- ==============================
+         CONTENIDO PRINCIPAL
+         ============================== -->
+    <main class="contenido">
+
+        <!-- Barra superior -->
+        <header class="barra-superior admin-page-header">
+
+            <div class="titulo">
+                Agregar Vehículo
+            </div>
+
+        </header>
+
+
+        <!-- ==============================
+             CONTENIDO DEL FORMULARIO
+             ============================== -->
+        <div class="contenido-principal">
+
+            <!-- Encabezado -->
+            <div class="encabezado-pagina">
+
+                <div>
+                    <h1>Agregar Vehículo</h1>
+
+                    <p>
+                        Registra un nuevo vehículo en el inventario.
+                    </p>
+                </div>
+
+                <a href="/vehiculos" class="btn-volver">
+                    <i class="cil-arrow-left" aria-hidden="true"></i> Volver al inventario
+                </a>
+
+            </div>
+
+
+            <!-- ==============================
+                 FORMULARIO
+                 ============================== -->
+            <div class="formulario-card">
+
+                <div class="formulario-header">
+
+                    <h2>Información del vehículo</h2>
+
+                    <p>
+                        Completa todos los datos necesarios del vehículo.
+                    </p>
+
+                </div>
+
+
+                <div class="formulario-body">
+
+                    <!-- ==============================
+                         INFORMACIÓN BÁSICA
+                         ============================== -->
+                    <div class="seccion-formulario">
+
+                        <h3>Información básica</h3>
+
+                        <div class="form-grid">
+
+                            <!-- Marca -->
+                            <div class="campo">
+
+                                <label for="marca">
+                                    Marca
+                                    <span>*</span>
+                                </label>
+
+                                <select id="marca"
+                                        @bind="Marca">
+
+                                    <option value="">
+                                        Seleccionar marca
+                                    </option>
+
+                                    <option value="Toyota">
+                                        Toyota
+                                    </option>
+
+                                    <option value="BMW">
+                                        BMW
+                                    </option>
+
+                                    <option value="Kia">
+                                        Kia
+                                    </option>
+
+                                    <option value="Honda">
+                                        Honda
+                                    </option>
+
+                                    <option value="Hyundai">
+                                        Hyundai
+                                    </option>
+
+                                    <option value="Mercedes-Benz">
+                                        Mercedes-Benz
+                                    </option>
+
+                                    <option value="Ford">
+                                        Ford
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Modelo -->
+                            <div class="campo">
+
+                                <label for="modelo">
+                                    Modelo
+                                    <span>*</span>
+                                </label>
+
+                                <input id="modelo"
+                                       type="text"
+                                       @bind="Modelo"
+                                       placeholder="Ej. Hilux" />
+
+                            </div>
+
+                            <div class="campo">
+                                <label for="matricula">
+                                    Matrícula
+                                    <span>*</span>
+                                </label>
+                                <input id="matricula"
+                                       type="text"
+                                       @bind="Matricula"
+                                       maxlength="20"
+                                       placeholder="Ej. A123456" />
+                            </div>
+
+                            <div class="campo">
+                                <label for="edicion">
+                                    Edición
+                                </label>
+                                <input id="edicion"
+                                       type="text"
+                                       @bind="Edicion"
+                                       placeholder="Ej. SR5" />
+                            </div>
+
+
+                            <!-- Año -->
+                            <div class="campo">
+
+                                <label for="anio">
+                                    Año
+                                    <span>*</span>
+                                </label>
+
+                                <input id="anio"
+                                       type="number"
+                                       @bind="Anio"
+                                       placeholder="Ej. 2025" />
+
+                            </div>
+
+
+                            <!-- Precio -->
+                            <div class="campo">
+
+                                <label for="precio">
+                                    Precio
+                                    <span>*</span>
+                                </label>
+
+                                <div class="input-precio">
+
+                                    <span>$</span>
+
+                                    <input id="precio"
+                                           type="number"
+                                           @bind="Precio"
+                                           placeholder="0.00" />
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Estado -->
+                            <div class="campo">
+
+                                <label for="estado">
+                                    Estado
+                                    <span>*</span>
+                                </label>
+
+                                <select id="estado"
+                                        @bind="Estado">
+
+                                    <option value="">
+                                        Seleccionar estado
+                                    </option>
+
+                                    <option value="Disponible">
+                                        Disponible
+                                    </option>
+
+                                    <option value="Reservado">
+                                        Reservado
+                                    </option>
+
+                                    <option value="Vendido">
+                                        Vendido
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <!-- Tipo -->
+                            <div class="campo">
+
+                                <label for="tipo">
+                                    Tipo de vehículo
+                                    <span>*</span>
+                                </label>
+
+                                <select id="tipo"
+                                        @bind="Tipo">
+
+                                    <option value="">
+                                        Seleccionar tipo
+                                    </option>
+
+                                    <option value="Sedán">
+                                        Sedán
+                                    </option>
+
+                                    <option value="SUV">
+                                        SUV
+                                    </option>
+
+                                    <option value="Pick-up">
+                                        Pick-up
+                                    </option>
+
+                                    <option value="Coupé">
+                                        Coupé
+                                    </option>
+
+                                    <option value="Camioneta">
+                                        Camioneta
+                                    </option>
+
+                                    <option value="Van">
+                                        Van
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         INFORMACIÓN ADICIONAL
+                         ============================== -->
+                    <div class="seccion-formulario">
+
+                        <h3>Información adicional</h3>
+
+                        <div class="form-grid">
+
+                            <!-- Color -->
+                            <div class="campo">
+
+                                <label for="color">
+                                    Color
+                                </label>
+
+                                <input id="color"
+                                       type="text"
+                                       @bind="Color"
+                                       placeholder="Ej. Negro" />
+
+                            </div>
+
+
+                            <!-- Combustible -->
+                            <div class="campo">
+
+                                <label for="combustible">
+                                    Combustible
+                                </label>
+
+                                <select id="combustible"
+                                        @bind="Combustible">
+
+                                    <option value="">
+                                        Seleccionar combustible
+                                    </option>
+
+                                    <option value="Gasolina">
+                                        Gasolina
+                                    </option>
+
+                                    <option value="Diésel">
+                                        Diésel
+                                    </option>
+
+                                    <option value="Híbrido">
+                                        Híbrido
+                                    </option>
+
+                                    <option value="Eléctrico">
+                                        Eléctrico
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Transmisión -->
+                            <div class="campo">
+
+                                <label for="transmision">
+                                    Tipo de transmisión
+                                </label>
+
+                                <select id="transmision"
+                                        @bind="Transmision">
+
+                                    <option value="">
+                                        Seleccionar transmisión
+                                    </option>
+
+                                    <option value="Automática">
+                                        Automática
+                                    </option>
+
+                                    <option value="Manual">
+                                        Manual
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Kilometraje -->
+                            <div class="campo">
+
+                                <label for="kilometraje">
+                                    Kilometraje (km)
+                                </label>
+
+                                <input id="kilometraje"
+                                       type="number"
+                                       @bind="Kilometraje"
+                                       placeholder="Ej. 25000" />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         DESCRIPCIÓN
+                         ============================== -->
+                    <div class="seccion-formulario">
+
+                        <h3>Descripción</h3>
+
+                        <div class="campo campo-completo">
+
+                            <label for="descripcion">
+                                Descripción del vehículo
+                            </label>
+
+                            <textarea id="descripcion"
+                                      @bind="Descripcion"
+                                      placeholder="Escribe una descripción del vehículo..."
+                                      rows="5">
+                            </textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==============================
+                         IMAGEN
+                         ============================== -->
+                    <div class="seccion-formulario">
+
+                        <h3>Imagen del vehículo</h3>
+
+                        <div class="subir-imagen">
+
+                            <div class="icono-imagen">
+                                <i class="cil-image" aria-hidden="true"></i>
+                            </div>
+
+                            <h4>Seleccionar foto del vehículo</h4>
+
+                            <p>
+                                JPG, PNG o WebP. Tamaño máximo: 5 MB.
+                            </p>
+
+                            <div class="campo campo-completo">
+                                <label for="imagen-archivo">Foto del vehículo</label>
+                                <InputFile id="imagen-archivo" class="form-control"
+                                           accept="image/jpeg,image/png,image/webp"
+                                           OnChange="SeleccionarImagen" />
+                            </div>
+
+                            @if (ImagenArchivo is not null)
+                            {
+                                <div class="imagen-seleccionada">
+                                    <i class="cil-check-circle" aria-hidden="true"></i> @ImagenArchivo.Name
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(ErrorImagen))
+                            {
+                                <div class="alert alert-danger mt-2" role="alert">@ErrorImagen</div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==============================
+                     BOTONES
+                     ============================== -->
+                <div class="formulario-footer">
+
+                    <a href="/vehiculos"
+                       class="btn-cancelar">
+
+                        Cancelar
+
+                    </a>
+
+                    <button class="btn-guardar"
+                            @onclick="GuardarVehiculo">
+
+                        <i class="cil-check-circle" aria-hidden="true"></i> Guardar vehículo
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+</AdminLayout>
+
+
+@code {
+
+    private string Marca = "";
+    private string Modelo = "";
+    private string Matricula = "";
+    private int? Anio;
+    private decimal? Precio;
+    private string Estado = "";
+    private string Tipo = "";
+    private string Edicion = "";
+
+    private string Color = "";
+    private string Combustible = "";
+    private string Transmision = "";
+    private int? Kilometraje;
+
+    private string Descripcion = "";
+
+    private IBrowserFile? ImagenArchivo;
+    private string? ErrorImagen;
+
+    private void SeleccionarImagen(InputFileChangeEventArgs args)
+    {
+        try
+        {
+            VehiculoImagenes.ValidarArchivo(args.File);
+            ImagenArchivo = args.File;
+            ErrorImagen = null;
+        }
+        catch (InvalidOperationException exception)
+        {
+            ImagenArchivo = null;
+            ErrorImagen = exception.Message;
+        }
+    }
+
+
+    private async Task GuardarVehiculo()
+    {
+        if (string.IsNullOrWhiteSpace(Marca) ||
+            string.IsNullOrWhiteSpace(Modelo) ||
+            string.IsNullOrWhiteSpace(Estado) ||
+            string.IsNullOrWhiteSpace(Tipo) ||
+            !Anio.HasValue ||
+            !Precio.HasValue ||
+            Precio.Value < 0)
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                "Completa los campos obligatorios del vehículo con valores válidos.");
+            return;
+        }
+
+        string? imagenGuardada = null;
+        try
+        {
+            if (ImagenArchivo is not null)
+            {
+                imagenGuardada = await VehiculoImagenes.GuardarAsync(ImagenArchivo, HostEnvironment.WebRootPath);
+            }
+        }
+        catch (Exception exception)
+        {
+            await JS.InvokeVoidAsync("alert", exception.Message);
+            return;
+        }
+
+        var vehiculo = new DLeon_Asociados_Web.Models.Vehiculos
+        {
+            Marca = Marca,
+            Modelo = Modelo,
+            Matricula = Matricula,
+            Edicion = string.IsNullOrWhiteSpace(Edicion) ? null : Edicion.Trim(),
+            Anio = Anio.Value,
+            Precio = Precio.Value,
+            Estado = Estado,
+            Tipo = Tipo,
+            Color = Color,
+            Combustible = Combustible,
+            Transmision = Transmision,
+            Kilometraje = Kilometraje,
+            Descripcion = Descripcion,
+            Imagen = imagenGuardada,
+            Nombre = $"{Marca} {Modelo} {(!string.IsNullOrWhiteSpace(Edicion) ? Edicion : string.Empty)}".Trim(),
+            FechaPublicacion = DateTime.UtcNow,
+            FechaCreacion = DateTime.UtcNow
+        };
+
+        try
+        {
+            await VehiculosServices.Insertar(vehiculo);
+        }
+        catch (InvalidOperationException ex)
+        {
+            VehiculoImagenes.EliminarSubida(imagenGuardada, HostEnvironment.WebRootPath);
+            await JS.InvokeVoidAsync("alert", ex.Message);
+            return;
+        }
+        catch (Exception ex)
+        {
+            VehiculoImagenes.EliminarSubida(imagenGuardada, HostEnvironment.WebRootPath);
+            await JS.InvokeVoidAsync("alert", $"No fue posible guardar el vehículo: {ex.Message}");
+            return;
+        }
+
+        Navigation.NavigateTo("/vehiculos");
+    }
+
+}

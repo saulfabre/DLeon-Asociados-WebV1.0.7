@@ -1,0 +1,53 @@
+@page "/clientes/vehiculo/agregar"
+@rendermode InteractiveServer
+
+<PageTitle>Asociar vehículo | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="customers">
+    <section class="admin-form-page">
+        <header class="admin-form-header">
+            <div>
+                <a class="admin-form-back" href="/clientes">
+                    <i class="cil-arrow-left" aria-hidden="true"></i>
+                    Volver al cliente
+                </a>
+                <h1>Asociar vehículo</h1>
+            </div>
+        </header>
+
+        <main class="admin-form-content">
+            <form class="admin-form-card" @onsubmit:preventDefault>
+                <p class="admin-form-description">
+                    Selecciona el vehículo que deseas asociar a la ficha del cliente.
+                </p>
+
+                <div class="admin-form-grid">
+                    <div class="admin-form-field admin-form-field-full">
+                        <label for="associated-vehicle">Vehículo*</label>
+                        <select id="associated-vehicle" required>
+                            <option value="">Selecciona un vehículo</option>
+                            <option>Toyota Corolla — ABC-123</option>
+                            <option>Toyota Hilux — XYZ-987</option>
+                            <option>Honda Civic — G-2C-118</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="association-date">Fecha de asociación*</label>
+                        <input id="association-date" type="date" required />
+                    </div>
+
+                    <div class="admin-form-field">
+                        <label for="last-service">Último servicio</label>
+                        <input id="last-service" type="text" placeholder="Ej.: 12/10/2026" />
+                    </div>
+                </div>
+
+                <div class="admin-form-actions">
+                    <a class="admin-form-cancel" href="/clientes">Cancelar</a>
+                    <button class="admin-form-save" type="button">Asociar vehículo</button>
+                </div>
+            </form>
+        </main>
+    </section>
+</AdminLayout>

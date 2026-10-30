@@ -1,0 +1,254 @@
+@if (Visible)
+{
+    <div class="modal-fondo">
+
+        <div class="modal-vehiculo">
+
+            <!-- BOTÓN CERRAR -->
+            <button class="btn-cerrar" @onclick="Cerrar" aria-label="Cerrar detalle">
+                <i class="cil-x" aria-hidden="true"></i>
+            </button>
+
+
+            <!-- PARTE SUPERIOR -->
+            <div class="contenido-superior">
+
+                <!-- GALERÍA -->
+                <div class="galeria">
+
+                    <img class="imagen-principal"
+                        src="@ImagenesActuales[ImagenActual]"
+                         alt="@Modelo" />
+
+                    <!-- FLECHA IZQUIERDA -->
+                    <button class="flecha izquierda" aria-label="Imagen anterior"
+                            @onclick="ImagenAnterior">
+                        <i class="cil-chevron-left" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- FLECHA DERECHA -->
+                    <button class="flecha derecha" aria-label="Imagen siguiente"
+                            @onclick="ImagenSiguiente">
+                        <i class="cil-chevron-right" aria-hidden="true"></i>
+                    </button>
+
+
+                    <!-- INDICADORES -->
+                    <div class="indicadores">
+
+                        @for (int i = 0; i < ImagenesActuales.Length; i++)
+                        {
+                            int indice = i;
+
+                            <button class="indicador @(ImagenActual == indice ? "activo" : "")"
+                                    @onclick="() => SeleccionarImagen(indice)">
+                            </button>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- INFORMACIÓN -->
+                <div class="informacion">
+
+                    <div class="campo">
+
+                        <span>Marca de vehículo</span>
+
+                        <strong>
+                            @Marca
+                        </strong>
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <span>Modelo</span>
+
+                        <strong>
+                            @Modelo
+                        </strong>
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <span>Año del vehículo</span>
+
+                        <strong>
+                            @Anio
+                        </strong>
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <span>Estado del vehículo</span>
+
+                        <span class="estado">
+                            @Estado
+                        </span>
+
+                    </div>
+
+
+                    <!-- ELIMINAR -->
+                    <div class="accion-eliminar">
+
+                        <span>
+                            Eliminar vehículo
+                        </span>
+
+                        <button class="btn-eliminar" aria-label="Eliminar vehículo"
+                                @onclick="Eliminar">
+                            <i class="cil-trash" aria-hidden="true"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DESCRIPCIÓN -->
+            <div class="descripcion">
+
+                <h3>
+                    Descripción
+                </h3>
+
+                <p>
+                    @Descripcion
+                </p>
+
+            </div>
+
+
+            <!-- BOTÓN EDITAR -->
+            <button class="btn-editar" aria-label="Editar vehículo"
+                    @onclick="Editar">
+                <i class="cil-pencil" aria-hidden="true"></i>
+            </button>
+
+        </div>
+
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+
+    [Parameter]
+    public string Marca { get; set; } = "Toyota";
+
+    [Parameter]
+    public string Modelo { get; set; } = "Hilux";
+
+    [Parameter]
+    public string Anio { get; set; } = "2027";
+
+    [Parameter]
+    public string Estado { get; set; } = "Disponible";
+
+    [Parameter]
+    public string Descripcion { get; set; } =
+        "Descripción La Toyota Hilux Travo-e 2027 es una camioneta pick-up 100% eléctrica (BEV) que maximiza la resistencia tradicional de la línea Hilux con tecnología de movilidad sostenible.";
+
+    [Parameter]
+    public string ImagenPrincipal { get; set; } = "/images/vehiculos/toyota-hilux.jpg";
+
+    [Parameter]
+    public string[] Imagenes { get; set; } = Array.Empty<string>();
+
+    
+    /*
+     * IMÁGENES DEL VEHÍCULO
+     *
+     * Estas imágenes deben estar en:
+     *
+     * wwwroot/images/vehiculos/
+     */
+
+    private string[] ImagenesActuales = Array.Empty<string>();
+
+
+    private int ImagenActual = 0;
+
+    protected override void OnParametersSet()
+    {
+        ImagenesActuales = Imagenes.Length > 0
+            ? Imagenes
+            : string.IsNullOrWhiteSpace(ImagenPrincipal)
+                ? new[] { "/images/vehiculos/toyota-hilux.jpg" }
+                : new[] { ImagenPrincipal };
+
+        ImagenActual = 0;
+    }
+
+
+    private void ImagenSiguiente()
+    {
+        ImagenActual++;
+
+        if (ImagenActual >= ImagenesActuales.Length)
+        {
+            ImagenActual = 0;
+        }
+    }
+
+
+    private void ImagenAnterior()
+    {
+        ImagenActual--;
+
+        if (ImagenActual < 0)
+        {
+            ImagenActual = ImagenesActuales.Length - 1;
+        }
+    }
+
+
+    private void SeleccionarImagen(int indice)
+    {
+        ImagenActual = indice;
+    }
+
+
+    private async Task Cerrar()
+    {
+        Visible = false;
+
+        await VisibleChanged.InvokeAsync(false);
+    }
+
+
+    private void Editar()
+    {
+        // Aquí posteriormente podemos colocar
+        // la navegación a Editar Vehículo.
+
+    }
+
+
+    private void Eliminar()
+    {
+        // Aquí posteriormente podemos colocar
+        // la eliminación del vehículo.
+
+    }
+
+}
+

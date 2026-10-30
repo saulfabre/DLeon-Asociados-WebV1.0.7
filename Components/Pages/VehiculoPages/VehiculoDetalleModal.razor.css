@@ -1,0 +1,224 @@
+.modal-fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgb(15 23 42 / 58%);
+}
+
+.modal-vehiculo {
+    position: relative;
+    width: min(760px, 100%);
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 24px 64px rgb(15 23 42 / 24%);
+}
+
+.btn-cerrar,
+.btn-editar,
+.btn-eliminar,
+.flecha {
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    cursor: pointer;
+}
+
+.btn-cerrar {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 1px 6px rgb(15 23 42 / 18%);
+}
+
+.contenido-superior {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(190px, 0.8fr);
+    gap: 20px;
+}
+
+.galeria {
+    position: relative;
+    min-width: 0;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #e9edf2;
+}
+
+.imagen-principal {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.flecha {
+    position: absolute;
+    top: 50%;
+    width: 38px;
+    height: 38px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: rgb(15 23 42 / 58%);
+    color: #fff;
+}
+
+.flecha.izquierda {
+    left: 12px;
+}
+
+.flecha.derecha {
+    right: 12px;
+}
+
+.indicadores {
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.indicador {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+}
+
+.indicador.activo {
+    background: #2563eb;
+}
+
+.informacion {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 8px 34px 0 0;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.campo span:first-child {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.campo strong {
+    color: #172033;
+    font-size: 0.95rem;
+}
+
+.estado {
+    width: fit-content;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 0.75rem;
+}
+
+.accion-eliminar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: auto;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.btn-eliminar,
+.btn-editar {
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
+}
+
+.btn-eliminar {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.descripcion {
+    padding: 18px 2px 4px;
+}
+
+.descripcion h3 {
+    margin: 0 0 6px;
+    color: #172033;
+    font-size: 1rem;
+}
+
+.descripcion p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.btn-editar {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+@media (max-width: 640px) {
+    .modal-fondo {
+        padding: 12px;
+    }
+
+    .modal-vehiculo {
+        max-height: calc(100dvh - 24px);
+        padding: 12px;
+    }
+
+    .contenido-superior {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .galeria {
+        aspect-ratio: 4 / 3;
+    }
+
+    .informacion {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0 0 48px;
+    }
+
+    .accion-eliminar {
+        grid-column: 1 / -1;
+    }
+
+    .btn-editar {
+        right: 12px;
+        bottom: 12px;
+    }
+}

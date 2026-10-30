@@ -1,0 +1,321 @@
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@using DLeon_Asociados_Web.Components.Pages.Registro
+@using SeguroModel = DLeon_Asociados_Web.Models.Seguros
+@inject SegurosServices SegurosServices
+@inject ClientesServices ClientesServices
+
+@if (Visible)
+{
+    <div class="modal-backdrop fade show" @onclick="Cancelar"></div>
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+            aria-labelledby="titulo-modal-seguro" @onclick="Cancelar">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <EditForm Model="Modelo" OnValidSubmit="Guardar">
+                    <DataAnnotationsValidator />
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="titulo-modal-seguro">@(Modelo.Id == 0 ? "Agregar seguro" : "Editar seguro")</h2>
+                        <button type="button" class="btn-close" aria-label="Cerrar" disabled="@Guardando" @onclick="Cancelar"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (Vehiculos.Count == 0 && Modelo.VehiculoId == 0)
+                        {
+                            <div class="alert alert-warning" role="alert">Registra un vehículo antes de agregar un seguro.</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Error))
+                        {
+                            <div class="alert alert-danger" role="alert">@Error</div>
+                        }
+                        <div class="d-flex align-items-end gap-2 mb-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label" for="seguro-cliente-existente">Cliente registrado</label>
+                                <select id="seguro-cliente-existente" class="form-select"
+                                        value="@ClienteIdSeleccionado" @onchange="CambiarClienteSeleccionado">
+                                    <option value="">Registrar datos nuevos</option>
+                                    @if (ClienteIdSeleccionado.HasValue &&
+                                         Clientes.All(cliente => cliente.Id != ClienteIdSeleccionado.Value))
+                                    {
+                                        <option value="@ClienteIdSeleccionado">
+                                            @Modelo.ClienteNombre @Modelo.ClienteApellido · Inactivo
+                                        </option>
+                                    }
+                                    @foreach (var cliente in Clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.NombreCompleto · @cliente.Documento</option>
+                                    }
+                                </select>
+                            </div>
+                            <button class="btn btn-outline-primary text-nowrap" type="button" @onclick="AbrirNuevoCliente">
+                                <i class="cil-plus" aria-hidden="true"></i> Nuevo cliente
+                            </button>
+                        </div>
+                        <h3 class="h6 mb-3">Información del cliente</h3>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-cliente-nombre">Nombre</label>
+                                <InputText id="seguro-cliente-nombre" class="form-control" @bind-Value="Modelo.ClienteNombre" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.ClienteNombre" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-cliente-apellido">Apellido</label>
+                                <InputText id="seguro-cliente-apellido" class="form-control" @bind-Value="Modelo.ClienteApellido" maxlength="80" />
+                                <ValidationMessage For="() => Modelo.ClienteApellido" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-cliente-documento">Cédula / Documento</label>
+                                <InputText id="seguro-cliente-documento" class="form-control" @bind-Value="Modelo.ClienteDocumento" maxlength="40" />
+                                <ValidationMessage For="() => Modelo.ClienteDocumento" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-cliente-telefono">Teléfono</label>
+                                <InputText id="seguro-cliente-telefono" class="form-control" @bind-Value="Modelo.ClienteTelefono" maxlength="30" />
+                                <ValidationMessage For="() => Modelo.ClienteTelefono" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="seguro-cliente-correo">Correo electrónico</label>
+                                <InputText id="seguro-cliente-correo" type="email" class="form-control" @bind-Value="Modelo.ClienteCorreo" maxlength="150" />
+                                <ValidationMessage For="() => Modelo.ClienteCorreo" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="seguro-cliente-direccion">Dirección residencial</label>
+                                <InputTextArea id="seguro-cliente-direccion" class="form-control" @bind-Value="Modelo.ClienteDireccion" maxlength="250" rows="2" />
+                                <ValidationMessage For="() => Modelo.ClienteDireccion" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="seguro-vehiculo">Vehículo</label>
+                            <InputSelect id="seguro-vehiculo" class="form-select" @bind-Value="Modelo.VehiculoId">
+                                <option value="0">Seleccionar vehículo</option>
+                                @if (Modelo.VehiculoId > 0 && Vehiculos.All(vehiculo => vehiculo.Id != Modelo.VehiculoId))
+                                {
+                                    <option value="@Modelo.VehiculoId">
+                                        @Seguro?.Vehiculo?.NombreCompleto · Matrícula: @Seguro?.Vehiculo?.Matricula (inactivo)
+                                    </option>
+                                }
+                                @foreach (var vehiculo in Vehiculos)
+                                {
+                                    <option value="@vehiculo.Id">@vehiculo.NombreCompleto (@vehiculo.Anio) · Matrícula: @vehiculo.Matricula</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => Modelo.VehiculoId" />
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-numero">Número de seguro</label>
+                                <InputText id="seguro-numero" class="form-control" @bind-Value="Modelo.NumeroSeguro" maxlength="50" />
+                                <ValidationMessage For="() => Modelo.NumeroSeguro" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-proveedor-tipo">Proveedor de seguro</label>
+                                <InputSelect id="seguro-proveedor-tipo" class="form-select" @bind-Value="Modelo.TipoProveedor">
+                                    <option value="Propio">Propio</option>
+                                    <option value="Externo">Externo</option>
+                                </InputSelect>
+                                <ValidationMessage For="() => Modelo.TipoProveedor" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="seguro-proveedor-nombre">Nombre del proveedor</label>
+                                <InputText id="seguro-proveedor-nombre" class="form-control" @bind-Value="Modelo.ProveedorNombre" maxlength="120" />
+                                <ValidationMessage For="() => Modelo.ProveedorNombre" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="seguro-tipo">Tipo de seguro</label>
+                            <InputSelect id="seguro-tipo" class="form-select" @bind-Value="Modelo.Tipo">
+                                <option value="Estandar">Estandar</option>
+                                <option value="Semi-Full">Semi-Full</option>
+                                <option value="Full">Full</option>
+                            </InputSelect>
+                            <ValidationMessage For="() => Modelo.Tipo" />
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-inicio">Fecha de inicio</label>
+                                <InputDate id="seguro-inicio" class="form-control" @bind-Value="Modelo.FechaInicio" />
+                                <ValidationMessage For="() => Modelo.FechaInicio" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="seguro-expiracion">Fecha de expiración</label>
+                                <InputDate id="seguro-expiracion" class="form-control" @bind-Value="Modelo.FechaExpiracion" />
+                                <ValidationMessage For="() => Modelo.FechaExpiracion" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" disabled="@Guardando" @onclick="Cancelar">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"
+                                disabled="@(Guardando || (Vehiculos.Count == 0 && Modelo.VehiculoId == 0))">
+                            @if (Guardando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                                <span>Guardando...</span>
+                            }
+                            else
+                            {
+                                <span>Guardar</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+    <ClientesFormModal Visible="MostrarModalClienteNuevo"
+                       VisibleChanged="CambiarVisibilidadModalCliente"
+                       Cliente="ClienteParaCrear"
+                       OnClienteSaved="ClienteNuevoGuardado" />
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    [Parameter] public SeguroModel? Seguro { get; set; }
+    [Parameter] public List<Vehiculos> Vehiculos { get; set; } = new();
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private List<Clientes> Clientes { get; set; } = new();
+    private SeguroModel Modelo { get; set; } = NuevoModelo();
+    private Clientes? ClienteParaCrear { get; set; }
+    private int? ClienteIdSeleccionado { get; set; }
+    private string? Error { get; set; }
+    private bool Guardando { get; set; }
+    private bool VisibleAnterior { get; set; }
+    private bool MostrarModalClienteNuevo { get; set; }
+    private int? IdCargado { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && (!VisibleAnterior || IdCargado != Seguro?.Id))
+        {
+            Clientes = await ClientesServices.ObtenerTodos();
+            Modelo = Seguro is null
+                ? NuevoModelo()
+                : new SeguroModel
+                {
+                    Id = Seguro.Id,
+                    Existe = Seguro.Existe,
+                    ClienteId = Seguro.ClienteId,
+                    VehiculoId = Seguro.VehiculoId,
+                    Tipo = Seguro.Tipo,
+                    NumeroSeguro = Seguro.NumeroSeguro,
+                    TipoProveedor = Seguro.TipoProveedor,
+                    ProveedorNombre = Seguro.ProveedorNombre,
+                    FechaInicio = Seguro.FechaInicio,
+                    FechaExpiracion = Seguro.FechaExpiracion,
+                    ClienteNombre = Seguro.ClienteNombre,
+                    ClienteApellido = Seguro.ClienteApellido,
+                    ClienteDocumento = Seguro.ClienteDocumento,
+                    ClienteTelefono = Seguro.ClienteTelefono,
+                    ClienteCorreo = Seguro.ClienteCorreo,
+                    ClienteDireccion = Seguro.ClienteDireccion
+                };
+            ClienteIdSeleccionado = Modelo.ClienteId;
+            Error = null;
+            IdCargado = Seguro?.Id;
+        }
+
+        VisibleAnterior = Visible;
+    }
+
+    private async Task Guardar()
+    {
+        if (Guardando)
+        {
+            return;
+        }
+
+        Guardando = true;
+        Error = null;
+        try
+        {
+            if (Modelo.Id == 0)
+            {
+                await SegurosServices.Crear(Modelo);
+            }
+            else if (!await SegurosServices.Actualizar(Modelo))
+            {
+                Error = "El seguro ya no existe o fue eliminado por otro usuario.";
+                return;
+            }
+
+            await OnSaved.InvokeAsync();
+            await VisibleChanged.InvokeAsync(false);
+        }
+        catch (Exception exception)
+        {
+            Error = exception.Message;
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private void AbrirNuevoCliente()
+    {
+        ClienteParaCrear = new Clientes();
+        MostrarModalClienteNuevo = true;
+    }
+
+    private Task CambiarVisibilidadModalCliente(bool visible)
+    {
+        MostrarModalClienteNuevo = visible;
+        return Task.CompletedTask;
+    }
+
+    private async Task ClienteNuevoGuardado(Clientes clienteGuardado)
+    {
+        Clientes = await ClientesServices.ObtenerTodos();
+        ClienteIdSeleccionado = clienteGuardado.Id;
+        AplicarClienteSeleccionado();
+    }
+
+    private void AplicarClienteSeleccionado()
+    {
+        Modelo.ClienteId = ClienteIdSeleccionado;
+        var cliente = Clientes.FirstOrDefault(item => item.Id == ClienteIdSeleccionado);
+        if (cliente is null)
+        {
+            Modelo.ClienteNombre = string.Empty;
+            Modelo.ClienteApellido = string.Empty;
+            Modelo.ClienteDocumento = string.Empty;
+            Modelo.ClienteTelefono = string.Empty;
+            Modelo.ClienteCorreo = string.Empty;
+            Modelo.ClienteDireccion = string.Empty;
+            return;
+        }
+
+        Modelo.ClienteNombre = cliente.Nombre;
+        Modelo.ClienteApellido = cliente.Apellido;
+        Modelo.ClienteDocumento = cliente.Documento ?? string.Empty;
+        Modelo.ClienteTelefono = cliente.Telefono ?? string.Empty;
+        Modelo.ClienteCorreo = cliente.Correo ?? string.Empty;
+        Modelo.ClienteDireccion = cliente.Direccion ?? string.Empty;
+    }
+
+    private void CambiarClienteSeleccionado(ChangeEventArgs args)
+    {
+        ClienteIdSeleccionado = int.TryParse(args.Value?.ToString(), out var clienteId)
+            ? clienteId
+            : null;
+        AplicarClienteSeleccionado();
+    }
+
+    private async Task Cancelar()
+    {
+        if (!Guardando)
+        {
+            await VisibleChanged.InvokeAsync(false);
+        }
+    }
+
+    private static SeguroModel NuevoModelo() => new()
+    {
+        Tipo = "Estandar",
+        TipoProveedor = "Propio",
+        FechaInicio = DateTime.Today,
+        FechaExpiracion = DateTime.Today.AddYears(1)
+    };
+}

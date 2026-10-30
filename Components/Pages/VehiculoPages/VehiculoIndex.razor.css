@@ -1,0 +1,406 @@
+/* ========================================
+   PÁGINA
+   ======================================== */
+
+.pagina {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    background: #f8f9fb;
+    color: #111;
+    font-family: inherit;
+}
+
+
+/* ========================================
+   CONTENIDO PRINCIPAL
+   ======================================== */
+
+.contenido {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* ========================================
+   BARRA SUPERIOR
+   ======================================== */
+
+.barra-superior {
+    height: 64px;
+    width: 100%;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+.titulo {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.busqueda {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.busqueda:focus {
+    outline: none;
+}
+
+/* ========================================
+   CONTENIDO
+   ======================================== */
+
+.contenido-principal {
+    padding: 24px;
+}
+
+
+/* ========================================
+   BOTONES
+   ======================================== */
+
+.acciones {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.busqueda-catalogo {
+    display: flex;
+    flex: 1 1 260px;
+    align-items: center;
+    gap: 10px;
+    max-width: 440px;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #64748b;
+    box-sizing: border-box;
+}
+
+.btn-agregar {
+    display: inline-flex;
+    align-items: center;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+
+    border: none;
+    border-radius: 8px;
+
+    padding: 8px 16px;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.btn-agregar:hover {
+    background: #1d4ed8;
+}
+
+.btn-exportar {
+    background: white;
+    color: #111827;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    padding: 8px 16px;
+
+    font-size: 0.85rem;
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+.btn-exportar:hover {
+    background: #f1f5f9;
+}
+
+
+/* ========================================
+   FILTROS
+   ======================================== */
+
+.filtros {
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+
+    padding: 24px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 16px;
+
+    margin-bottom: 24px;
+}
+
+.filtro label {
+    display: block;
+
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    color: #374151;
+
+    margin-bottom: 7px;
+}
+
+.filtro select {
+    width: 100%;
+    height: 40px;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+
+    padding: 0 10px;
+
+    font-size: 0.8rem;
+    color: #374151;
+
+    background: white;
+
+    outline: none;
+}
+
+.filtro select:focus {
+    border-color: #2563eb;
+}
+
+
+/* ========================================
+   TARJETAS DE VEHÍCULOS
+   ======================================== */
+
+.vehiculos {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 24px;
+}
+
+.vehiculo {
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.vehiculo:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+
+/* ========================================
+   IMAGEN DEL VEHÍCULO
+   ======================================== */
+
+.imagen-vehiculo {
+    width: 100%;
+    height: 192px;
+
+    object-fit: cover;
+
+    display: block;
+
+    cursor: pointer;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.imagen-vehiculo:hover {
+    opacity: 0.94;
+    transform: scale(1.01);
+}
+
+
+/* ========================================
+   INFORMACIÓN
+   ======================================== */
+
+.informacion {
+    padding: 24px;
+}
+
+.datos {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 16px;
+}
+
+.marca {
+    font-size: 0.9rem;
+
+    font-weight: 600;
+
+    color: #111827;
+}
+
+.ano {
+    font-size: 0.8rem;
+
+    color: #6b7280;
+
+    margin-left: 8px;
+}
+
+.precio {
+    font-size: 0.9rem;
+
+    font-weight: 700;
+
+    color: #111827;
+}
+
+
+/* ========================================
+   PARTE INFERIOR
+   ======================================== */
+
+.parte-inferior {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.disponible {
+    background: #dcfce7;
+
+    color: #16a34a;
+
+    border-radius: 6px;
+
+    padding: 8px;
+
+    font-size: 0.75rem;
+
+    font-weight: 600;
+}
+
+.combustible {
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+
+/* ========================================
+   BOTONES DE TARJETA
+   ======================================== */
+
+.botones {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-editar,
+.btn-eliminar {
+    width: 32px;
+    height: 32px;
+
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+    text-decoration: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-editar {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.btn-editar:hover {
+    background: #dbeafe;
+}
+
+.btn-eliminar {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.btn-eliminar:hover {
+    background: #fee2e2;
+}
+
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1100px) {
+
+    .vehiculos {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filtros {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    .vehiculos {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros {
+        grid-template-columns: 1fr;
+    }
+
+    .barra-superior {
+        padding: 0 16px;
+    }
+
+    .contenido-principal {
+        padding: 16px;
+    }
+}

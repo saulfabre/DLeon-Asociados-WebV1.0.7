@@ -1,0 +1,368 @@
+@page "/Garantias"
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using GarantiaModel = DLeon_Asociados_Web.Models.Garantias
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+@inject GarantiasServices GarantiasServices
+@inject VehiculosServices VehiculosServices
+
+<AdminLayout ActivePage="warranties">
+    <div class="pagina-garantias">
+        <header class="header-garantias admin-page-header">
+            <h1>Reporte de garantías próximas a expirar</h1>
+            <button class="btn btn-primary" type="button" @onclick="AbrirNueva">
+                <i class="cil-plus" aria-hidden="true"></i> Agregar garantía
+            </button>
+        </header>
+
+        <main class="contenido-garantias">
+            <div class="contenido-card">
+                <div class="barra-filtros">
+                    <label class="busqueda-garantias">
+                        <i class="cil-search" aria-hidden="true"></i>
+                        <input type="search" placeholder="Buscar vehículo o matrícula..."
+                               @bind="TextoBusqueda" @bind:event="oninput" @bind:after="ReiniciarPaginacion" />
+                    </label>
+
+                    <select class="form-select filtro-estado" aria-label="Filtrar por estado"
+                            @bind="EstadoFiltro" @bind:after="ReiniciarPaginacion">
+                        <option value="">Todos los estados</option>
+                        <option value="Vigente">Vigente</option>
+                        <option value="Expira pronto">Expira pronto</option>
+                        <option value="Vencida">Vencida</option>
+                    </select>
+
+                    <select class="form-select filtro-mes" aria-label="Filtrar por mes de expiración"
+                            @bind="MesFiltro" @bind:after="ReiniciarPaginacion">
+                        <option value="">Todos los meses</option>
+                        @foreach (var mes in MesesDisponibles)
+                        {
+                            <option value="@mes.Valor">@mes.Etiqueta</option>
+                        }
+                    </select>
+
+                    <div class="acciones-filtros">
+                        <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarFiltros">
+                            Limpiar filtros
+                        </button>
+                        <button class="btn btn-primary btn-imprimir" type="button" @onclick="ImprimirReporte">
+                            <i class="cil-print" aria-hidden="true"></i> Generar reporte
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(ErrorCarga))
+                {
+                    <div class="alert alert-danger" role="alert">@ErrorCarga</div>
+                }
+
+                @if (Cargando)
+                {
+                    <div class="estado-vacio" role="status">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        Cargando garantías...
+                    </div>
+                }
+                else if (GarantiasFiltradas.Count == 0)
+                {
+                    <div class="estado-vacio">
+                        @(RegistrosGarantia.Count == 0
+                            ? "No hay garantías registradas."
+                            : "No hay garantías que coincidan con los filtros.")
+                    </div>
+                }
+                else
+                {
+                    <div class="tabla-responsive">
+                        <QuickGrid @key="ClaveFiltros" TGridItem="GarantiaModel"
+                                   Items="@GarantiasFiltradas.AsQueryable()" Pagination="@Paginacion"
+                                   Class="table table-bordered table-hover align-middle tabla-garantias">
+                            <PropertyColumn Property="garantia => garantia.Vehiculo!.NombreCompleto" Title="Vehículo" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.Vehiculo!.Matricula" Title="Matrícula" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.Tipo" Title="Garantía" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.FechaInicio" Title="Fecha de inicio"
+                                            Format="dd/MM/yyyy" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.FechaExpiracion" Title="Fecha de expiración"
+                                            Format="dd/MM/yyyy" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.DiasRestantes" Title="Días restantes" Sortable="true" />
+                            <PropertyColumn Property="garantia => garantia.Estado" Title="Estado" Sortable="true" />
+                            <TemplateColumn Title="Acciones" Class="no-print" Context="garantia">
+                                <div class="acciones-registro">
+                                    <button class="btn btn-sm btn-outline-primary" type="button"
+                                            title="Editar garantía" aria-label="Editar garantía"
+                                            @onclick="() => AbrirEdicion(garantia)">
+                                        <i class="cil-pencil" aria-hidden="true"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" type="button"
+                                            title="Eliminar garantía" aria-label="Eliminar garantía"
+                                            @onclick="() => Eliminar(garantia)">
+                                        <i class="cil-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </TemplateColumn>
+                        </QuickGrid>
+                        <Paginator State="@Paginacion" />
+                    </div>
+                }
+            </div>
+        </main>
+    </div>
+
+    @if (MostrarModal)
+    {
+        <div class="modal-backdrop fade show" @onclick="CancelarEdicion"></div>
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+             aria-labelledby="titulo-modal-garantia" @onclick="CancelarEdicion">
+            <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+                <div class="modal-content">
+                    <EditForm Model="ModeloGarantia" OnValidSubmit="Guardar">
+                        <DataAnnotationsValidator />
+                        <div class="modal-header">
+                            <h2 class="modal-title fs-5" id="titulo-modal-garantia">
+                                @(ModeloGarantia.Id == 0 ? "Agregar garantía" : "Editar garantía")
+                            </h2>
+                            <button type="button" class="btn-close" aria-label="Cerrar"
+                                    disabled="@Guardando" @onclick="CancelarEdicion"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (!string.IsNullOrWhiteSpace(ErrorFormulario))
+                            {
+                                <div class="alert alert-danger" role="alert">@ErrorFormulario</div>
+                            }
+                            @if (Vehiculos.Count == 0 && ModeloGarantia.VehiculoId == 0)
+                            {
+                                <div class="alert alert-warning" role="alert">
+                                    Registra un vehículo antes de agregar una garantía.
+                                </div>
+                            }
+                            <div class="mb-3">
+                                <label class="form-label" for="garantia-vehiculo">Vehículo</label>
+                                <InputSelect id="garantia-vehiculo" class="form-select" @bind-Value="ModeloGarantia.VehiculoId">
+                                    <option value="0">Seleccionar vehículo</option>
+                                    @if (ModeloGarantia.VehiculoId > 0 &&
+                                         Vehiculos.All(vehiculo => vehiculo.Id != ModeloGarantia.VehiculoId))
+                                    {
+                                        <option value="@ModeloGarantia.VehiculoId">
+                                            @ModeloGarantia.Vehiculo?.NombreCompleto · Matrícula:
+                                            @ModeloGarantia.Vehiculo?.Matricula (inactivo)
+                                        </option>
+                                    }
+                                    @foreach (var vehiculo in Vehiculos)
+                                    {
+                                        <option value="@vehiculo.Id">
+                                            @vehiculo.NombreCompleto (@vehiculo.Anio) · Matrícula: @vehiculo.Matricula
+                                        </option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => ModeloGarantia.VehiculoId" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="garantia-tipo">Tipo de garantía</label>
+                                <InputText id="garantia-tipo" class="form-control"
+                                           @bind-Value="ModeloGarantia.Tipo" maxlength="100" />
+                                <ValidationMessage For="() => ModeloGarantia.Tipo" />
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="garantia-inicio">Fecha de inicio</label>
+                                    <InputDate id="garantia-inicio" class="form-control" @bind-Value="ModeloGarantia.FechaInicio" />
+                                    <ValidationMessage For="() => ModeloGarantia.FechaInicio" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="garantia-expiracion">Fecha de expiración</label>
+                                    <InputDate id="garantia-expiracion" class="form-control"
+                                               @bind-Value="ModeloGarantia.FechaExpiracion" />
+                                    <ValidationMessage For="() => ModeloGarantia.FechaExpiracion" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    disabled="@Guardando" @onclick="CancelarEdicion">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"
+                                    disabled="@(Guardando || (Vehiculos.Count == 0 && ModeloGarantia.VehiculoId == 0))">
+                                @(Guardando ? "Guardando..." : "Guardar garantía")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</AdminLayout>
+
+@code {
+    private readonly PaginationState Paginacion = new() { ItemsPerPage = 10 };
+    private List<GarantiaModel> RegistrosGarantia = new();
+    private List<Vehiculos> Vehiculos = new();
+    private string TextoBusqueda = string.Empty;
+    private string EstadoFiltro = string.Empty;
+    private string MesFiltro = string.Empty;
+    private string? ErrorCarga;
+    private string? ErrorFormulario;
+    private bool Cargando = true;
+    private bool MostrarModal;
+    private bool Guardando;
+    private GarantiaModel ModeloGarantia = NuevaGarantia();
+
+    private List<GarantiaModel> GarantiasFiltradas => RegistrosGarantia
+        .Where(garantia => string.IsNullOrWhiteSpace(TextoBusqueda) ||
+            (garantia.Vehiculo?.NombreCompleto.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (garantia.Vehiculo?.Matricula.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ?? false))
+        .Where(garantia => string.IsNullOrWhiteSpace(EstadoFiltro) || garantia.Estado == EstadoFiltro)
+        .Where(garantia => string.IsNullOrWhiteSpace(MesFiltro) ||
+            garantia.FechaExpiracion.ToString("yyyy-MM") == MesFiltro)
+        .ToList();
+
+    private IEnumerable<(string Valor, string Etiqueta)> MesesDisponibles =>
+        RegistrosGarantia
+            .Select(garantia => garantia.FechaExpiracion.ToString("yyyy-MM"))
+            .Append(DateTime.Today.ToString("yyyy-MM"))
+            .Distinct()
+            .OrderBy(mes => mes)
+            .Select(mes => (
+                mes,
+                DateTime.ParseExact(mes, "yyyy-MM", System.Globalization.CultureInfo.InvariantCulture)
+                    .ToString("MMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("es-ES"))));
+
+    private string ClaveFiltros => $"{TextoBusqueda}|{EstadoFiltro}|{MesFiltro}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecargarDatos();
+        Cargando = false;
+    }
+
+    private async Task RecargarDatos()
+    {
+        try
+        {
+            ErrorCarga = null;
+            var cargaGarantias = GarantiasServices.ObtenerTodos();
+            var cargaVehiculos = VehiculosServices.GetList();
+            await Task.WhenAll(cargaGarantias, cargaVehiculos);
+            RegistrosGarantia = await cargaGarantias;
+            Vehiculos = await cargaVehiculos;
+            await ReiniciarPaginacion();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible cargar las garantías. {exception.Message}";
+        }
+    }
+
+    private void AbrirNueva()
+    {
+        ModeloGarantia = NuevaGarantia();
+        ErrorFormulario = null;
+        MostrarModal = true;
+    }
+
+    private void AbrirEdicion(GarantiaModel garantia)
+    {
+        ModeloGarantia = new GarantiaModel
+        {
+            Id = garantia.Id,
+            Existe = garantia.Existe,
+            VehiculoId = garantia.VehiculoId,
+            Vehiculo = garantia.Vehiculo,
+            Tipo = garantia.Tipo,
+            FechaInicio = garantia.FechaInicio,
+            FechaExpiracion = garantia.FechaExpiracion
+        };
+        ErrorFormulario = null;
+        MostrarModal = true;
+    }
+
+    private async Task Guardar()
+    {
+        if (Guardando)
+        {
+            return;
+        }
+
+        Guardando = true;
+        ErrorFormulario = null;
+        try
+        {
+            if (ModeloGarantia.Id == 0)
+            {
+                await GarantiasServices.Crear(ModeloGarantia);
+            }
+            else if (!await GarantiasServices.Actualizar(ModeloGarantia))
+            {
+                ErrorFormulario = "La garantía ya no existe o fue eliminada por otro usuario.";
+                return;
+            }
+
+            await RecargarDatos();
+            MostrarModal = false;
+        }
+        catch (Exception exception)
+        {
+            ErrorFormulario = exception.Message;
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private async Task Eliminar(GarantiaModel garantia)
+    {
+        var confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Deseas eliminar la garantía de {garantia.Vehiculo?.NombreCompleto}?");
+        if (!confirmar)
+        {
+            return;
+        }
+
+        try
+        {
+            ErrorCarga = null;
+            if (!await GarantiasServices.Eliminar(garantia.Id))
+            {
+                ErrorCarga = "La garantía ya no existe o fue eliminada por otro usuario.";
+                return;
+            }
+
+            await RecargarDatos();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible eliminar la garantía. {exception.Message}";
+        }
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        TextoBusqueda = string.Empty;
+        EstadoFiltro = string.Empty;
+        MesFiltro = string.Empty;
+        await ReiniciarPaginacion();
+    }
+
+    private Task ReiniciarPaginacion() => Paginacion.SetCurrentPageIndexAsync(0);
+
+    private Task ImprimirReporte() => JS.InvokeVoidAsync("window.print").AsTask();
+
+    private Task CancelarEdicion()
+    {
+        if (!Guardando)
+        {
+            MostrarModal = false;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static GarantiaModel NuevaGarantia() => new()
+    {
+        Tipo = "Garantía de fábrica",
+        FechaInicio = DateTime.Today,
+        FechaExpiracion = DateTime.Today.AddYears(1)
+    };
+}

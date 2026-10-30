@@ -1,0 +1,278 @@
+@page "/vehiculos"
+@using DLeon_Asociados_Web.Components.Layout
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@rendermode InteractiveServer
+@inject VehiculosServices VehiculosServices
+@inject IWebHostEnvironment HostEnvironment
+@inject IJSRuntime JS
+
+<PageTitle>Inventario de Vehículos | D'Leon Asociados</PageTitle>
+
+<AdminLayout ActivePage="vehicles">
+<div class="pagina">
+
+    <main class="contenido">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="barra-superior admin-page-header">
+            <div class="titulo">
+                Inventario de Vehículos
+            </div>
+
+        </header>
+
+        <!-- CONTENIDO -->
+        <div class="contenido-principal">
+            <!-- BOTONES -->
+            <div class="acciones">
+                <label class="busqueda-catalogo">
+                    <i class="cil-search" aria-hidden="true"></i>
+                    <input class="busqueda"
+                           type="search"
+                           placeholder="Buscar vehículo, matrícula, marca o modelo..."
+                           value="@TextoBusqueda"
+                           @oninput="CambiarBusqueda" />
+                </label>
+
+                <a class="btn btn-primary" href="/vehiculo/agregar">
+                    <i class="cil-plus" aria-hidden="true"></i> Agregar Vehículo
+                </a>
+
+                <button class="btn-exportar">
+                    <i class="cil-cloud-upload" aria-hidden="true"></i> Exportar Excel
+                </button>
+            </div>
+
+            <!-- FILTROS -->
+            <div class="filtros">
+                <div class="filtro">
+                    <label>Marca</label>
+                    <select @bind="MarcaFiltro" @bind:after="AplicarFiltros">
+                        <option value="">Todas las marcas</option>
+                        @foreach (var marca in Vehiculos.Select(v => v.Marca).Distinct().OrderBy(v => v))
+                        {
+                            <option value="@marca">@marca</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filtro">
+                    <label>Estado</label>
+                    <select @bind="EstadoFiltro" @bind:after="AplicarFiltros">
+                        <option value="">Disponible / Reservado</option>
+                        <option value="Disponible">Disponible</option>
+                        <option value="Reservado">Reservado</option>
+                        <option value="Vendido">Vendido</option>
+                    </select>
+                </div>
+
+                <div class="filtro">
+                    <label>Rango de Año</label>
+                    <select @bind="RangoAnio" @bind:after="AplicarFiltros">
+                        <option value="">2020 - 2027</option>
+                        <option value="2020-2023">2020 - 2023</option>
+                        <option value="2024-2027">2024 - 2027</option>
+                    </select>
+                </div>
+
+                <div class="filtro">
+                    <label>Rango de Precio</label>
+                    <select @bind="RangoPrecio" @bind:after="AplicarFiltros">
+                        <option value="">Cualquier precio</option>
+                        <option value="0-30000">Menos de $30,000</option>
+                        <option value="30000-60000">$30,000 - $60,000</option>
+                        <option value="60000+">Más de $60,000</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ========================================
+                 VEHICULOS
+                 ======================================== -->
+            <div class="vehiculos">
+                @foreach (var vehiculo in VehiculosFiltrados)
+                {
+                    var imagen = VehiculoImagenes.ObtenerUrl(vehiculo.Imagen, HostEnvironment.WebRootPath);
+                    <div class="vehiculo">
+                        <img class="imagen-vehiculo"
+                             src="@imagen"
+                             alt="@vehiculo.NombreCompleto"
+                             @onclick="() => AbrirModal(vehiculo, imagen)" />
+
+                        <div class="informacion">
+                            <div class="datos">
+                                <div>
+                                    <span class="marca">
+                                        @vehiculo.Marca @vehiculo.Modelo
+                                    </span>
+                                    <span class="ano">
+                                        @vehiculo.Anio
+                                    </span>
+                                </div>
+                                <span class="precio">
+                                    $@vehiculo.Precio.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))
+                                </span>
+                            </div>
+
+                            <div class="parte-inferior">
+                                <span class="disponible">
+                                    @vehiculo.Estado
+                                </span>
+                                <span class="combustible">
+                                    Matrícula: @vehiculo.Matricula
+                                </span>
+                                <span class="combustible">
+                                    @vehiculo.Combustible
+                                </span>
+                                <div class="botones">
+                                    <a class="btn-editar"
+                                       href="@($"/vehiculo/editar?id={vehiculo.Id}")"
+                                       aria-label="@($"Editar {vehiculo.NombreCompleto}")">
+                                        <i class="cil-pencil" aria-hidden="true"></i>
+                                    </a>
+                                    <button class="btn-eliminar"
+                                            type="button"
+                                            aria-label="@($"Eliminar {vehiculo.NombreCompleto}")"
+                                            @onclick="() => EliminarVehiculo(vehiculo)">
+                                        <i class="cil-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
+</div>
+
+<VehiculoDetalleModal
+    Visible="@MostrarModal"
+    VisibleChanged="@ModalCerrado"
+    Marca="@MarcaSeleccionada"
+    Modelo="@ModeloSeleccionado"
+    Anio="@AnioSeleccionado"
+    Estado="@EstadoSeleccionado"
+    Descripcion="@DescripcionSeleccionada"
+    ImagenPrincipal="@ImagenSeleccionada"
+    Imagenes="@ImagenesSeleccionadas" />
+</AdminLayout>
+
+@code {
+    private List<Vehiculos> Vehiculos = new();
+    private List<Vehiculos> VehiculosFiltrados = new();
+    private string TextoBusqueda = string.Empty;
+    private string MarcaFiltro = string.Empty;
+    private string EstadoFiltro = string.Empty;
+    private string RangoAnio = string.Empty;
+    private string RangoPrecio = string.Empty;
+
+    private bool MostrarModal;
+    private string MarcaSeleccionada = string.Empty;
+    private string ModeloSeleccionado = string.Empty;
+    private string AnioSeleccionado = string.Empty;
+    private string EstadoSeleccionado = string.Empty;
+    private string DescripcionSeleccionada = string.Empty;
+    private string ImagenSeleccionada = string.Empty;
+    private string[] ImagenesSeleccionadas = Array.Empty<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecargarVehiculos();
+    }
+
+    private async Task RecargarVehiculos()
+    {
+        Vehiculos = await VehiculosServices.GetList();
+        AplicarFiltros();
+    }
+
+    private void CambiarBusqueda(ChangeEventArgs args)
+    {
+        TextoBusqueda = args.Value?.ToString() ?? string.Empty;
+        AplicarFiltros();
+    }
+
+    private void AplicarFiltros()
+    {
+        var query = Vehiculos.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+        {
+            query = query.Where(v =>
+                v.NombreCompleto.Contains(TextoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                v.Marca.Contains(TextoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                v.Modelo.Contains(TextoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                v.Matricula.Contains(TextoBusqueda, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(MarcaFiltro))
+        {
+            query = query.Where(v => v.Marca == MarcaFiltro);
+        }
+
+        if (!string.IsNullOrWhiteSpace(EstadoFiltro))
+        {
+            query = query.Where(v => v.Estado == EstadoFiltro);
+        }
+
+        if (RangoAnio == "2020-2023")
+        {
+            query = query.Where(v => v.Anio is >= 2020 and <= 2023);
+        }
+        else if (RangoAnio == "2024-2027")
+        {
+            query = query.Where(v => v.Anio is >= 2024 and <= 2027);
+        }
+
+        if (RangoPrecio == "0-30000")
+        {
+            query = query.Where(v => v.Precio < 30000);
+        }
+        else if (RangoPrecio == "30000-60000")
+        {
+            query = query.Where(v => v.Precio is >= 30000 and <= 60000);
+        }
+        else if (RangoPrecio == "60000+")
+        {
+            query = query.Where(v => v.Precio > 60000);
+        }
+
+        VehiculosFiltrados = query.ToList();
+    }
+
+    private async Task EliminarVehiculo(Vehiculos vehiculo)
+    {
+        var confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Deseas eliminar {vehiculo.NombreCompleto}?");
+
+        if (!confirmar)
+        {
+            return;
+        }
+
+        await VehiculosServices.Eliminar(vehiculo.Id);
+        await RecargarVehiculos();
+    }
+
+    private void AbrirModal(Vehiculos vehiculo, string imagen)
+    {
+        MarcaSeleccionada = vehiculo.Marca;
+        ModeloSeleccionado = vehiculo.Modelo;
+        AnioSeleccionado = vehiculo.Anio.ToString();
+        EstadoSeleccionado = vehiculo.Estado;
+        DescripcionSeleccionada = vehiculo.Descripcion ?? string.Empty;
+        ImagenSeleccionada = imagen;
+        ImagenesSeleccionadas = string.IsNullOrWhiteSpace(imagen)
+            ? Array.Empty<string>()
+            : new[] { imagen };
+        MostrarModal = true;
+    }
+
+    private void ModalCerrado(bool valor)
+    {
+        MostrarModal = valor;
+    }
+}

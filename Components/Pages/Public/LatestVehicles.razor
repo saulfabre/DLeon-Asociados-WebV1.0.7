@@ -1,0 +1,304 @@
+@page "/latest-vehicles"
+@rendermode InteractiveServer
+@inject DLeon_Asociados_Web.Services.VehiculosServices VehiculosServices
+@inject IWebHostEnvironment HostEnvironment
+
+<PageTitle>D'Leon Asociados. Últimos Vehículos</PageTitle>
+
+@* Encabezado general *@
+<header class="header">
+    <a href="/" class="header-brand">
+        <span class="header-brand-name">D'LEON</span>
+        <span class="header-brand-subtitle">&amp; ASOCIADOS S.R.L</span>
+    </a>
+
+    <nav class="header-navigation">
+        <a href="/">Inicio</a>
+        <a href="/latest-vehicles">Vehículos</a>
+        <a href="/Seguros">Seguros</a>
+        <a href="/Garantias">Garantías</a>
+        <a href="/login">Acceso</a>
+    </nav>
+
+    <a href="/login" class="login-btn">Acceso</a>
+</header>
+
+@* Hero de vehículos *@
+<section class="vehicles-hero">
+    <video class="vehicles-hero-video" autoplay muted loop playsinline aria-label="Video de vehículos">
+        <source src="/images/imagesSaul/public/hero-video.mp4" type="video/mp4" />
+    </video>
+    <div class="vehicles-hero-overlay" aria-hidden="true"></div>
+    <div class="vehicles-hero-content">
+        <p class="vehicles-hero-eyebrow">D'Leon Asociados</p>
+        <h1 class="vehicles-hero-title">Muévete a tu manera.</h1>
+        <a class="vehicles-hero-link" href="#vehicle-results">
+            Explorar vehículos
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+        </a>
+    </div>
+</section>
+
+<section class="vehicles-page">
+    <div class="vehicles-layout">
+        @* Filtros de búsqueda *@
+        <aside class="filter-box">
+            <h1 class="filter-title">Buscar por Filtro</h1>
+
+            <div class="filter-controls">
+                <div class="filter-field">
+                    <label for="vehicle-type">Tipo Vehículo</label>
+                    <select id="vehicle-type" class="filter-select" @bind="TipoSeleccionado">
+                        <option value="">Todos</option>
+                        @foreach (var tipo in Vehiculos.Select(vehiculo => vehiculo.Tipo).Distinct().OrderBy(tipo => tipo))
+                        {
+                            <option value="@tipo">@tipo</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="vehicle-brand">Marca</label>
+                    <select id="vehicle-brand" class="filter-select" @bind="MarcaSeleccionada">
+                        <option value="">Todas</option>
+                        @foreach (var marca in Vehiculos.Select(vehiculo => vehiculo.Marca).Distinct().OrderBy(marca => marca))
+                        {
+                            <option value="@marca">@marca</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="vehicle-model">Modelo</label>
+                    <select id="vehicle-model" class="filter-select" @bind="ModeloSeleccionado">
+                        <option value="">Todos</option>
+                        @foreach (var modelo in Vehiculos.Select(vehiculo => vehiculo.Modelo).Distinct().OrderBy(modelo => modelo))
+                        {
+                            <option value="@modelo">@modelo</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="vehicle-registration">Matrícula</label>
+                    <input id="vehicle-registration" class="filter-input" type="search"
+                           placeholder="Buscar matrícula" @bind="MatriculaBusqueda" />
+                </div>
+
+                <div class="filter-field">
+                    <label for="vehicle-edition">Edición</label>
+                    <select id="vehicle-edition" class="filter-select" @bind="EdicionSeleccionada">
+                        <option value="">Todas</option>
+                        @foreach (var edicion in Vehiculos.Select(vehiculo => vehiculo.Edicion).Distinct().OrderBy(edicion => edicion))
+                        {
+                            <option value="@edicion">@edicion</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="filter-year-row">
+                    <div class="filter-field">
+                        <label for="year-from">Desde (Año)</label>
+                        <select id="year-from" class="filter-select" @bind="AnioDesde">
+                            <option value="">Todos</option>
+                            @foreach (var anio in Vehiculos.Select(vehiculo => vehiculo.Anio).Distinct().OrderBy(anio => anio))
+                            {
+                                <option value="@anio">@anio</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="filter-field">
+                        <label for="year-to">Hasta (Año)</label>
+                        <select id="year-to" class="filter-select" @bind="AnioHasta">
+                            <option value="">Todos</option>
+                            @foreach (var anio in Vehiculos.Select(vehiculo => vehiculo.Anio).Distinct().OrderBy(anio => anio))
+                            {
+                                <option value="@anio">@anio</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-field">
+                    <label>Precio</label>
+                    <div class="filter-price-row">
+                        <input class="filter-input" type="number" min="0" max="1500000" step="1000" placeholder="Mínimo" aria-label="Precio mínimo" @bind="PrecioMinimo" />
+                        <input class="filter-input" type="number" min="0" max="1500000" step="1000" placeholder="Máximo" aria-label="Precio máximo" @bind="PrecioMaximo" />
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="filter-btn" type="button" @onclick="Buscar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-4-4" />
+                        </svg>
+                        Buscar
+                    </button>
+                    <button class="filter-clear" type="button" @onclick="LimpiarFiltros">Limpiar filtros</button>
+                </div>
+            </div>
+        </aside>
+
+        @* Resultados de vehículos *@
+        <div class="vehicle-results" id="vehicle-results">
+            <div class="results-header">
+                @if (VehiculosFiltrados.Count > 0)
+                {
+                    <p>Mostrando 1-@VehiculosFiltrados.Count de @VehiculosFiltrados.Count resultados</p>
+                }
+                else
+                {
+                    <p>Mostrando 0 resultados</p>
+                }
+            </div>
+
+            @if (VehiculosFiltrados.Count > 0)
+            {
+                <div class="vehicle-grid">
+                    @foreach (var vehiculo in VehiculosFiltrados)
+                    {
+                        <article class="vehicle-card">
+                            <div class="vehicle-image-container">
+                                <img class="vehicle-image"
+                                     src="@DLeon_Asociados_Web.Services.VehiculoImagenes.ObtenerUrl(vehiculo.Imagen, HostEnvironment.WebRootPath)"
+                                     alt="@vehiculo.NombreCompleto" />
+                                <button class="vehicle-arrow vehicle-arrow-left" type="button" aria-label="Imagen anterior">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m15 18-6-6 6-6" />
+                                    </svg>
+                                </button>
+                                <button class="vehicle-arrow vehicle-arrow-right" type="button" aria-label="Imagen siguiente">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </button>
+                                <span class="vehicle-tag">@vehiculo.Tipo</span>
+                                <span class="vehicle-tag vehicle-year">@vehiculo.Anio</span>
+                            </div>
+
+                            <div class="vehicle-info">
+                                <h2 class="vehicle-name">@vehiculo.NombreCompleto</h2>
+                                <div class="vehicle-specs">
+                                    <div class="vehicle-spec">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 21V4a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v17" />
+                                            <path d="M5 10h11M8 6h5M16 7h2l3 3v7a2 2 0 0 1-4 0v-3h-1M3 21h15" />
+                                        </svg>
+                                        <span class="vehicle-spec-label">Combustible</span>
+                                        <span class="vehicle-spec-value">@vehiculo.Combustible</span>
+                                    </div>
+                                    <div class="vehicle-spec">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M3 14a9 9 0 0 1 18 0M12 14l4-5M5 18h14" />
+                                            <circle cx="12" cy="14" r="1" />
+                                        </svg>
+                                        <span class="vehicle-spec-label">Millaje</span>
+                                        <span class="vehicle-spec-value">@vehiculo.Millaje</span>
+                                    </div>
+                                    <div class="vehicle-spec">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M5 4v16M19 4v16M5 8h14M5 16h14" />
+                                            <circle cx="5" cy="8" r="2" />
+                                            <circle cx="19" cy="8" r="2" />
+                                            <circle cx="5" cy="16" r="2" />
+                                            <circle cx="19" cy="16" r="2" />
+                                        </svg>
+                                        <span class="vehicle-spec-label">Transmisión</span>
+                                        <span class="vehicle-spec-value">@vehiculo.Transmision</span>
+                                    </div>
+                                </div>
+
+                                <footer class="vehicle-footer">
+                                    <p class="vehicle-price">RD$ @vehiculo.Precio.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</p>
+                                    <a class="vehicle-link" href="/vehiculos">
+                                        Ver Detalles
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M7 17 17 7M8 7h9v9" />
+                                        </svg>
+                                    </a>
+                                    <button class="vehicle-favorite" type="button" aria-label="Agregar a favoritos">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+                                        </svg>
+                                    </button>
+                                </footer>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="no-results">No se encontraron vehículos</p>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<DLeon_Asociados_Web.Models.Vehiculos> Vehiculos = new();
+    private List<DLeon_Asociados_Web.Models.Vehiculos> VehiculosFiltrados = new();
+    private string TipoSeleccionado { get; set; } = string.Empty;
+    private string MarcaSeleccionada { get; set; } = string.Empty;
+    private string ModeloSeleccionado { get; set; } = string.Empty;
+    private string EdicionSeleccionada { get; set; } = string.Empty;
+    private string MatriculaBusqueda { get; set; } = string.Empty;
+    private int? AnioDesde { get; set; }
+    private int? AnioHasta { get; set; }
+    private decimal? PrecioMinimo { get; set; }
+    private decimal? PrecioMaximo { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Vehiculos = await VehiculosServices.GetList();
+        VehiculosFiltrados = new(Vehiculos);
+    }
+
+    private async Task Buscar()
+    {
+        VehiculosFiltrados = await VehiculosServices.GetList(
+            marca: string.IsNullOrWhiteSpace(MarcaSeleccionada) ? null : MarcaSeleccionada,
+            modelo: string.IsNullOrWhiteSpace(ModeloSeleccionado) ? null : ModeloSeleccionado,
+            tipo: string.IsNullOrWhiteSpace(TipoSeleccionado) ? null : TipoSeleccionado,
+            estado: null,
+            anioDesde: AnioDesde,
+            anioHasta: AnioHasta,
+            precioMinimo: PrecioMinimo,
+            precioMaximo: PrecioMaximo);
+
+        if (!string.IsNullOrWhiteSpace(EdicionSeleccionada))
+        {
+            VehiculosFiltrados = VehiculosFiltrados
+                .Where(vehiculo => string.Equals(vehiculo.Edicion, EdicionSeleccionada, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(MatriculaBusqueda))
+        {
+            VehiculosFiltrados = VehiculosFiltrados
+                .Where(vehiculo => vehiculo.Matricula.Contains(
+                    MatriculaBusqueda.Trim(),
+                    StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        TipoSeleccionado = string.Empty;
+        MarcaSeleccionada = string.Empty;
+        ModeloSeleccionado = string.Empty;
+        EdicionSeleccionada = string.Empty;
+        MatriculaBusqueda = string.Empty;
+        AnioDesde = null;
+        AnioHasta = null;
+        PrecioMinimo = null;
+        PrecioMaximo = null;
+
+        Vehiculos = await VehiculosServices.GetList();
+        VehiculosFiltrados = new(Vehiculos);
+    }
+}
