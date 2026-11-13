@@ -71,7 +71,20 @@
                                 $@repuesto.PrecioUnitario.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))
                             </span>
                         </TemplateColumn>
-                        <PropertyColumn Property="repuesto => repuesto.Proveedor" Title="Proveedor" Sortable="true" />
+                        <TemplateColumn Title="Proveedor" Sortable="true" SortBy="OrdenProveedor" Context="repuesto">
+                            @if (repuesto.ProveedorDetalle is not null)
+                            {
+                                <button type="button" class="proveedor-enlace"
+                                        @onclick="() => MostrarProveedor(repuesto.ProveedorDetalle.Id)"
+                                        aria-label="@($"Ver información de {repuesto.ProveedorDetalle.Nombre}")">
+                                    @repuesto.ProveedorDetalle.Nombre
+                                </button>
+                            }
+                            else
+                            {
+                                <span>@(repuesto.Proveedor ?? "—")</span>
+                            }
+                        </TemplateColumn>
                         <TemplateColumn Title="Acciones" Class="no-print" Context="repuesto">
                             <div class="acciones-registro">
                                 <button class="btn btn-sm btn-outline-primary" type="button"
@@ -97,6 +110,9 @@
                         VisibleChanged="CambiarVisibilidadModal"
                         Repuesto="RepuestoSeleccionado"
                         OnSaved="RecargarRepuestos" />
+    <ProveedorDetalleModal Visible="MostrarDetalleProveedor"
+                           ProveedorId="ProveedorDetalleId"
+                           OnClose="CerrarDetalleProveedor" />
 </AdminLayout>
 
 @code {
@@ -106,10 +122,14 @@
     private string? ErrorCarga;
     private bool Cargando = true;
     private bool MostrarModal;
+    private bool MostrarDetalleProveedor;
+    private int? ProveedorDetalleId;
     private RepuestoModel? RepuestoSeleccionado;
 
     private static GridSort<RepuestoModel> OrdenPrecio { get; } =
         GridSort<RepuestoModel>.ByAscending(repuesto => repuesto.PrecioUnitario);
+    private static GridSort<RepuestoModel> OrdenProveedor { get; } =
+        GridSort<RepuestoModel>.ByAscending(repuesto => repuesto.Proveedor);
 
     private List<RepuestoModel> RepuestosFiltrados => RegistrosRepuestos
         .Where(repuesto => string.IsNullOrWhiteSpace(TextoBusqueda) ||
@@ -155,6 +175,19 @@
     private Task CambiarVisibilidadModal(bool visible)
     {
         MostrarModal = visible;
+        return Task.CompletedTask;
+    }
+
+    private void MostrarProveedor(int proveedorId)
+    {
+        ProveedorDetalleId = proveedorId;
+        MostrarDetalleProveedor = true;
+    }
+
+    private Task CerrarDetalleProveedor()
+    {
+        MostrarDetalleProveedor = false;
+        ProveedorDetalleId = null;
         return Task.CompletedTask;
     }
 

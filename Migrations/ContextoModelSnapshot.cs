@@ -22,6 +22,27 @@ namespace DLeon_Asociados_Web.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.CategoriaPiezaProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("CategoriasPiezasProveedor");
+                });
+
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Clientes", b =>
                 {
                     b.Property<int>("Id")
@@ -106,6 +127,354 @@ namespace DLeon_Asociados_Web.Migrations
                     b.HasIndex("VehiculoId");
 
                     b.ToTable("Garantias");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.MarcaProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("MarcasProveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ModeloVehiculoProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("ModelosVehiculosProveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorCategoriaPieza", b =>
+                {
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoriaPiezaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProveedorId", "CategoriaPiezaId");
+
+                    b.HasIndex("CategoriaPiezaId");
+
+                    b.ToTable("ProveedoresCategoriasPiezas");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorMarca", b =>
+                {
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MarcaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProveedorId", "MarcaId");
+
+                    b.HasIndex("MarcaId");
+
+                    b.ToTable("ProveedoresMarcas");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorModeloVehiculo", b =>
+                {
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ModeloVehiculoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProveedorId", "ModeloVehiculoId");
+
+                    b.HasIndex("ModeloVehiculoId");
+
+                    b.ToTable("ProveedoresModelosVehiculos");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.Proveedores", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ciudad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Documento")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Especialidad")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("Existe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("GarantiaOfrecida")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasDefaultValue("");
+
+                    b.Property<decimal>("LimiteCredito")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("NombreContacto")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("PaginaWeb")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Pais")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("PaisProcedencia")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("PoliticaDevolucion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Provincia")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("TerminosPago")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Contado");
+
+                    b.Property<int?>("TiempoEntregaDias")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TipoPiezas")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("TipoProveedor")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("TipoServicios")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("TipoVehiculos")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("ZonaCobertura")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasDefaultValue("");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Proveedores");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.RepuestoOfertaProveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tamano")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProveedorId");
+
+                    b.ToTable("RepuestosOfrecidosProveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.Repuestos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Disponibles")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Existe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Proveedor")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int?>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tamano")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProveedorId");
+
+                    b.ToTable("Repuestos");
                 });
 
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Seguros", b =>
@@ -212,53 +581,6 @@ namespace DLeon_Asociados_Web.Migrations
                     b.ToTable("Seguros");
                 });
 
-            modelBuilder.Entity("DLeon_Asociados_Web.Models.Repuestos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Marca")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<int>("Disponibles")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Existe")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Proveedor")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<string>("Tamano")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Repuestos");
-                });
-
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Vehiculos", b =>
                 {
                     b.Property<int>("Id")
@@ -361,6 +683,84 @@ namespace DLeon_Asociados_Web.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorCategoriaPieza", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.CategoriaPiezaProveedor", "CategoriaPieza")
+                        .WithMany("Proveedores")
+                        .HasForeignKey("CategoriaPiezaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
+                        .WithMany("CategoriasPiezas")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CategoriaPieza");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorMarca", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.MarcaProveedor", "Marca")
+                        .WithMany("Proveedores")
+                        .HasForeignKey("MarcaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
+                        .WithMany("Marcas")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Marca");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorModeloVehiculo", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.ModeloVehiculoProveedor", "ModeloVehiculo")
+                        .WithMany("Proveedores")
+                        .HasForeignKey("ModeloVehiculoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
+                        .WithMany("ModelosVehiculos")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ModeloVehiculo");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.RepuestoOfertaProveedor", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
+                        .WithMany("CatalogoRepuestos")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.Repuestos", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "ProveedorDetalle")
+                        .WithMany("Repuestos")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ProveedorDetalle");
+                });
+
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Seguros", b =>
                 {
                     b.HasOne("DLeon_Asociados_Web.Models.Clientes", "Cliente")
@@ -379,9 +779,37 @@ namespace DLeon_Asociados_Web.Migrations
                     b.Navigation("Vehiculo");
                 });
 
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.CategoriaPiezaProveedor", b =>
+                {
+                    b.Navigation("Proveedores");
+                });
+
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Clientes", b =>
                 {
                     b.Navigation("Seguros");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.MarcaProveedor", b =>
+                {
+                    b.Navigation("Proveedores");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ModeloVehiculoProveedor", b =>
+                {
+                    b.Navigation("Proveedores");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.Proveedores", b =>
+                {
+                    b.Navigation("CatalogoRepuestos");
+
+                    b.Navigation("CategoriasPiezas");
+
+                    b.Navigation("Marcas");
+
+                    b.Navigation("ModelosVehiculos");
+
+                    b.Navigation("Repuestos");
                 });
 
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Vehiculos", b =>

@@ -122,6 +122,21 @@
     background: #fff;
 }
 
+.proveedor-enlace {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2864e8;
+    font: inherit;
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.proveedor-enlace:hover {
+    color: #1748b5;
+}
+
 .estado-vacio {
     display: flex;
     min-height: 120px;
