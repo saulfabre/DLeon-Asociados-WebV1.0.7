@@ -15,6 +15,14 @@ public class Contexto : DbContext
 	public DbSet<Clientes> Clientes { get; set; }
 	public DbSet<Garantias> Garantias { get; set; }
 	public DbSet<Repuestos> Repuestos { get; set; }
+	public DbSet<Proveedores> Proveedores { get; set; }
+	public DbSet<MarcaProveedor> MarcasProveedor { get; set; }
+	public DbSet<ModeloVehiculoProveedor> ModelosVehiculosProveedor { get; set; }
+	public DbSet<CategoriaPiezaProveedor> CategoriasPiezasProveedor { get; set; }
+	public DbSet<ProveedorMarca> ProveedoresMarcas { get; set; }
+	public DbSet<ProveedorModeloVehiculo> ProveedoresModelosVehiculos { get; set; }
+	public DbSet<ProveedorCategoriaPieza> ProveedoresCategoriasPiezas { get; set; }
+	public DbSet<RepuestoOfertaProveedor> RepuestosOfrecidosProveedor { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -101,6 +109,115 @@ public class Contexto : DbContext
 			entity.Property(repuesto => repuesto.Tamano).HasMaxLength(120);
 			entity.Property(repuesto => repuesto.PrecioUnitario).HasColumnType("decimal(18,2)");
 			entity.Property(repuesto => repuesto.Proveedor).HasMaxLength(120);
+			entity.HasIndex(repuesto => repuesto.ProveedorId);
+			entity.HasOne(repuesto => repuesto.ProveedorDetalle)
+				.WithMany(proveedor => proveedor.Repuestos)
+				.HasForeignKey(repuesto => repuesto.ProveedorId)
+				.OnDelete(DeleteBehavior.SetNull);
+		});
+
+		modelBuilder.Entity<Proveedores>(entity =>
+		{
+			entity.HasKey(proveedor => proveedor.Id);
+			entity.Property(proveedor => proveedor.Existe).HasDefaultValue(true);
+			entity.Property(proveedor => proveedor.Nombre).HasMaxLength(120).IsRequired();
+			entity.Property(proveedor => proveedor.Documento).HasMaxLength(40).IsRequired();
+			entity.Property(proveedor => proveedor.Telefono).HasMaxLength(30).IsRequired();
+			entity.Property(proveedor => proveedor.Correo).HasMaxLength(150);
+			entity.Property(proveedor => proveedor.Ciudad).HasMaxLength(100).IsRequired();
+			entity.Property(proveedor => proveedor.Estado).HasMaxLength(20).IsRequired();
+			entity.Property(proveedor => proveedor.Direccion).HasMaxLength(250);
+			entity.Property(proveedor => proveedor.TipoProveedor).HasMaxLength(50).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.NombreContacto).HasMaxLength(120).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.PaginaWeb).HasMaxLength(200).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.Pais).HasMaxLength(80).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.Provincia).HasMaxLength(100).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.TerminosPago).HasMaxLength(30).HasDefaultValue("Contado").IsRequired();
+			entity.Property(proveedor => proveedor.LimiteCredito).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+			entity.Property(proveedor => proveedor.GarantiaOfrecida).HasMaxLength(1000).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.PoliticaDevolucion).HasMaxLength(1000).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.Observaciones).HasMaxLength(2000).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.TipoVehiculos).HasMaxLength(20).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.PaisProcedencia).HasMaxLength(80).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.TipoPiezas).HasMaxLength(30).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.TipoServicios).HasMaxLength(120).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.Especialidad).HasMaxLength(120).HasDefaultValue(string.Empty).IsRequired();
+			entity.Property(proveedor => proveedor.ZonaCobertura).HasMaxLength(200).HasDefaultValue(string.Empty).IsRequired();
+		});
+
+		modelBuilder.Entity<MarcaProveedor>(entity =>
+		{
+			entity.HasKey(marca => marca.Id);
+			entity.Property(marca => marca.Nombre).HasMaxLength(80).IsRequired();
+			entity.HasIndex(marca => marca.Nombre).IsUnique();
+		});
+
+		modelBuilder.Entity<ModeloVehiculoProveedor>(entity =>
+		{
+			entity.HasKey(modelo => modelo.Id);
+			entity.Property(modelo => modelo.Nombre).HasMaxLength(100).IsRequired();
+			entity.HasIndex(modelo => modelo.Nombre).IsUnique();
+		});
+
+		modelBuilder.Entity<CategoriaPiezaProveedor>(entity =>
+		{
+			entity.HasKey(categoria => categoria.Id);
+			entity.Property(categoria => categoria.Nombre).HasMaxLength(100).IsRequired();
+			entity.HasIndex(categoria => categoria.Nombre).IsUnique();
+		});
+
+		modelBuilder.Entity<ProveedorMarca>(entity =>
+		{
+			entity.HasKey(relacion => new { relacion.ProveedorId, relacion.MarcaId });
+			entity.HasOne(relacion => relacion.Proveedor)
+				.WithMany(proveedor => proveedor.Marcas)
+				.HasForeignKey(relacion => relacion.ProveedorId)
+				.OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne(relacion => relacion.Marca)
+				.WithMany(marca => marca.Proveedores)
+				.HasForeignKey(relacion => relacion.MarcaId)
+				.OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<ProveedorModeloVehiculo>(entity =>
+		{
+			entity.HasKey(relacion => new { relacion.ProveedorId, relacion.ModeloVehiculoId });
+			entity.HasOne(relacion => relacion.Proveedor)
+				.WithMany(proveedor => proveedor.ModelosVehiculos)
+				.HasForeignKey(relacion => relacion.ProveedorId)
+				.OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne(relacion => relacion.ModeloVehiculo)
+				.WithMany(modelo => modelo.Proveedores)
+				.HasForeignKey(relacion => relacion.ModeloVehiculoId)
+				.OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<ProveedorCategoriaPieza>(entity =>
+		{
+			entity.HasKey(relacion => new { relacion.ProveedorId, relacion.CategoriaPiezaId });
+			entity.HasOne(relacion => relacion.Proveedor)
+				.WithMany(proveedor => proveedor.CategoriasPiezas)
+				.HasForeignKey(relacion => relacion.ProveedorId)
+				.OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne(relacion => relacion.CategoriaPieza)
+				.WithMany(categoria => categoria.Proveedores)
+				.HasForeignKey(relacion => relacion.CategoriaPiezaId)
+				.OnDelete(DeleteBehavior.Restrict);
+		});
+
+		modelBuilder.Entity<RepuestoOfertaProveedor>(entity =>
+		{
+			entity.HasKey(oferta => oferta.Id);
+			entity.Property(oferta => oferta.Nombre).HasMaxLength(120).IsRequired();
+			entity.Property(oferta => oferta.Marca).HasMaxLength(80).IsRequired();
+			entity.Property(oferta => oferta.Tipo).HasMaxLength(80).IsRequired();
+			entity.Property(oferta => oferta.Tamano).HasMaxLength(120);
+			entity.Property(oferta => oferta.Precio).HasColumnType("decimal(18,2)");
+			entity.HasIndex(oferta => oferta.ProveedorId);
+			entity.HasOne(oferta => oferta.Proveedor)
+				.WithMany(proveedor => proveedor.CatalogoRepuestos)
+				.HasForeignKey(oferta => oferta.ProveedorId)
+				.OnDelete(DeleteBehavior.Cascade);
 		});
 	}
 }

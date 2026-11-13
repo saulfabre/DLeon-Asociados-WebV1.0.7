@@ -1,7 +1,10 @@
 @page "/Proveedores/Crear"
-@page "/Proveedores/Editar"
+@page "/Proveedores/Editar/{Id:int}"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
 @using DLeon_Asociados_Web.Services
+@using DLeon_Asociados_Web.Models
 @inject ProveedoresStore ProveedoresStore
 @inject NavigationManager Navigation
 
@@ -15,74 +18,340 @@
                     <i class="cil-arrow-left" aria-hidden="true"></i>
                     Volver a proveedores
                 </a>
-                <h1>Información del proveedor</h1>
+                <h1>@(EsEdicion ? "Editar proveedor" : "Agregar proveedor")</h1>
             </div>
         </header>
 
         <main class="admin-form-content">
-            <form class="admin-form-card" @onsubmit="Guardar" @onsubmit:preventDefault>
-                <div class="admin-form-grid">
-                    <div class="admin-form-field">
-                        <label for="supplier-name">Nombre del proveedor*</label>
-                        <input id="supplier-name" type="text" placeholder="Ej.: Repuestos Saul RS" @bind="Nombre" required />
-                    </div>
+            @if (!string.IsNullOrWhiteSpace(ErrorCarga))
+            {
+                <div class="alert alert-danger" role="alert">@ErrorCarga</div>
+            }
 
-                    <div class="admin-form-field">
-                        <label for="supplier-document">Cédula/RNC*</label>
-                        <input id="supplier-document" type="text" placeholder="000-0000000-0" @bind="Documento" required />
-                    </div>
+            @if (Cargando)
+            {
+                <div class="estado-vacio" role="status">Cargando proveedor...</div>
+            }
+            else if (EsEdicion && Modelo.Id == 0)
+            {
+                @if (string.IsNullOrWhiteSpace(ErrorCarga))
+                {
+                    <div class="alert alert-warning" role="alert">El proveedor no existe o fue eliminado.</div>
+                }
+            }
+            else
+            {
+                <EditForm Model="Modelo" OnSubmit="Guardar" class="admin-form-card">
 
-                    <div class="admin-form-field">
-                        <label for="supplier-phone">Teléfono*</label>
-                        <input id="supplier-phone" type="tel" placeholder="809-000-0000" @bind="Telefono" required />
-                    </div>
+                    <section class="proveedor-form-section" aria-labelledby="seccion-general">
+                        <div class="proveedor-section-heading">
+                            <h2 id="seccion-general">Información del proveedor</h2>
+                            <p>Datos de identificación y contacto.</p>
+                        </div>
+                        <div class="admin-form-grid">
+                            <div class="admin-form-field">
+                                <label for="supplier-name">Nombre del proveedor*</label>
+                                <InputText id="supplier-name" class="form-control" placeholder="Ej.: Repuestos Saul RS"
+                                           @bind-Value="Modelo.Nombre" maxlength="120" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-document">Cédula/RNC*</label>
+                                <InputText id="supplier-document" class="form-control" placeholder="000-0000000-0"
+                                           @bind-Value="Modelo.Documento" maxlength="40" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-phone">Teléfono*</label>
+                                <InputText id="supplier-phone" class="form-control" type="tel" placeholder="809-000-0000"
+                                           @bind-Value="Modelo.Telefono" maxlength="30" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-contact">Nombre del contacto</label>
+                                <InputText id="supplier-contact" class="form-control" placeholder="Persona de contacto"
+                                           @bind-Value="Modelo.NombreContacto" maxlength="120" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-email">Correo electrónico</label>
+                                <InputText id="supplier-email" class="form-control" type="email" placeholder="proveedor@ejemplo.com"
+                                           @bind-Value="Modelo.Correo" maxlength="150" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-city">Ciudad*</label>
+                                <InputText id="supplier-city" class="form-control" placeholder="Ciudad"
+                                           @bind-Value="Modelo.Ciudad" maxlength="100" />
+                            </div>
+                            <div class="admin-form-field">
+                                <label for="supplier-status">Estado</label>
+                                <InputSelect id="supplier-status" class="form-select" @bind-Value="Modelo.Estado">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </InputSelect>
+                            </div>
+                            <div class="admin-form-field admin-form-field-full">
+                                <label for="supplier-address">Dirección</label>
+                                <InputText id="supplier-address" class="form-control" placeholder="Dirección del proveedor"
+                                           @bind-Value="Modelo.Direccion" maxlength="250" />
+                            </div>
+                        </div>
+                    </section>
 
-                    <div class="admin-form-field">
-                        <label for="supplier-email">Correo electrónico</label>
-                        <input id="supplier-email" type="email" placeholder="proveedor@ejemplo.com" @bind="Correo" />
-                    </div>
+                    <section class="proveedor-form-section" aria-labelledby="seccion-catalogo-repuestos">
+                        <div class="proveedor-section-heading proveedor-catalogo-heading">
+                            <div>
+                                <h2 id="seccion-catalogo-repuestos">Repuestos que ofrece</h2>
+                                <p>Registra cada producto para autocompletar sus datos al agregarlo al inventario.</p>
+                            </div>
+                            <button class="btn btn-outline-primary" type="button" @onclick="AgregarOferta">
+                                <i class="cil-plus" aria-hidden="true"></i> Agregar repuesto
+                            </button>
+                        </div>
+                        @if (OfertasProveedor.Count == 0)
+                        {
+                            <div class="proveedor-catalogo-vacio">
+                                Todavía no hay repuestos registrados para este proveedor.
+                            </div>
+                        }
+                        @for (var indice = 0; indice < OfertasProveedor.Count; indice++)
+                        {
+                            var oferta = OfertasProveedor[indice];
+                            <div class="proveedor-oferta-card">
+                                <div class="proveedor-oferta-titulo">
+                                    <strong>Repuesto @(indice + 1)</strong>
+                                    <button class="btn btn-sm btn-outline-danger" type="button"
+                                            aria-label="@($"Quitar repuesto {indice + 1}")"
+                                            @onclick="() => QuitarOferta(oferta)">
+                                        <i class="cil-trash" aria-hidden="true"></i> Quitar
+                                    </button>
+                                </div>
+                                <div class="admin-form-grid">
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-name-{indice}")">Nombre de la pieza*</label>
+                                        <InputText id="@($"supplier-offer-name-{indice}")" class="form-control"
+                                                   @bind-Value="oferta.Nombre" maxlength="120" />
+                                    </div>
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-brand-{indice}")">Marca*</label>
+                                        <InputText id="@($"supplier-offer-brand-{indice}")" class="form-control"
+                                                   @bind-Value="oferta.Marca" maxlength="80" />
+                                    </div>
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-type-{indice}")">Tipo o categoría*</label>
+                                        <InputText id="@($"supplier-offer-type-{indice}")" class="form-control"
+                                                   @bind-Value="oferta.Tipo" maxlength="80" />
+                                    </div>
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-size-{indice}")">Tamaño o compatibilidad</label>
+                                        <InputText id="@($"supplier-offer-size-{indice}")" class="form-control"
+                                                   @bind-Value="oferta.Tamano" maxlength="120" />
+                                    </div>
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-quantity-{indice}")">Cantidad disponible</label>
+                                        <InputNumber id="@($"supplier-offer-quantity-{indice}")" class="form-control"
+                                                     @bind-Value="oferta.Cantidad" min="0" />
+                                    </div>
+                                    <div class="admin-form-field">
+                                        <label for="@($"supplier-offer-price-{indice}")">Precio unitario</label>
+                                        <InputNumber id="@($"supplier-offer-price-{indice}")" class="form-control"
+                                                     @bind-Value="oferta.Precio" min="0" step="0.01" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </section>
 
-                    <div class="admin-form-field">
-                        <label for="supplier-city">Ciudad*</label>
-                        <input id="supplier-city" type="text" placeholder="Ciudad" @bind="Ciudad" required />
+                    <div class="admin-form-actions">
+                        <a class="admin-form-cancel" href="/Proveedores">Cancelar</a>
+                        <button class="admin-form-save" type="button" disabled="@Guardando" @onclick="GuardarDesdeBoton">
+                            @(Guardando ? "Guardando..." : EsEdicion ? "Guardar cambios" : "Guardar proveedor")
+                        </button>
                     </div>
-
-                    <div class="admin-form-field">
-                        <label for="supplier-status">Estado</label>
-                        <select id="supplier-status" @bind="Estado">
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </div>
-
-                    <div class="admin-form-field admin-form-field-full">
-                        <label for="supplier-address">Dirección</label>
-                        <input id="supplier-address" type="text" placeholder="Dirección del proveedor" @bind="Direccion" />
-                    </div>
-                </div>
-
-                <div class="admin-form-actions">
-                    <a class="admin-form-cancel" href="/Proveedores">Cancelar</a>
-                    <button class="admin-form-save" type="submit">Guardar proveedor</button>
-                </div>
-            </form>
+                </EditForm>
+            }
         </main>
     </section>
 </AdminLayout>
 
 @code {
-    private string Nombre = string.Empty;
-    private string Documento = string.Empty;
-    private string Telefono = string.Empty;
-    private string Correo = string.Empty;
-    private string Ciudad = string.Empty;
-    private string Estado = "Activo";
-    private string Direccion = string.Empty;
+    [Parameter] public int? Id { get; set; }
 
-    private void Guardar()
+    private Proveedores Modelo { get; set; } = new()
     {
-        ProveedoresStore.Agregar(new ProveedoresStore.ProveedorRegistro(
-            Nombre.Trim(), Documento.Trim(), Telefono.Trim(), Correo.Trim(), Ciudad.Trim(), Estado, Direccion.Trim()));
-        Navigation.NavigateTo("/Proveedores");
+        TipoProveedor = TiposProveedor.PiezasYRepuestos,
+        TerminosPago = "Contado"
+    };
+    private List<RepuestoOfertaProveedor> OfertasProveedor { get; set; } = [new()];
+    private bool EsEdicion => Id.HasValue;
+    private bool Cargando = true;
+    private bool Guardando;
+    private string? ErrorCarga;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            try
+            {
+                var proveedor = await ProveedoresStore.ObtenerPorId(Id.Value);
+                if (proveedor is not null)
+                {
+                    Modelo = proveedor;
+                    OfertasProveedor = proveedor.CatalogoRepuestos
+                        .Select(oferta => new RepuestoOfertaProveedor
+                        {
+                            Id = oferta.Id,
+                            Nombre = oferta.Nombre,
+                            Marca = oferta.Marca,
+                            Tipo = oferta.Tipo,
+                            Tamano = oferta.Tamano,
+                            Cantidad = oferta.Cantidad,
+                            Precio = oferta.Precio
+                        })
+                        .ToList();
+                    if (OfertasProveedor.Count == 0)
+                    {
+                        OfertasProveedor.Add(new RepuestoOfertaProveedor());
+                    }
+                }
+                else
+                {
+                    ErrorCarga = "El proveedor no existe o fue eliminado.";
+                }
+            }
+            catch (Exception exception)
+            {
+                ErrorCarga = $"No fue posible cargar el proveedor. {exception.Message}";
+            }
+        }
+
+        Cargando = false;
     }
+
+    private Task Guardar(EditContext _) => GuardarCambios();
+
+    private Task GuardarDesdeBoton() => GuardarCambios();
+
+    private async Task GuardarCambios()
+    {
+        if (Guardando)
+        {
+            return;
+        }
+
+        ErrorCarga = null;
+        if (!ValidarCamposVisibles())
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Modelo.TipoProveedor)
+            || !TiposProveedor.Opciones.Contains(Modelo.TipoProveedor))
+        {
+            Modelo.TipoProveedor = TiposProveedor.PiezasYRepuestos;
+        }
+
+        if (string.IsNullOrWhiteSpace(Modelo.TerminosPago)
+            || Modelo.TerminosPago is not ("Contado" or "Crédito" or "Transferencia"))
+        {
+            Modelo.TerminosPago = "Contado";
+        }
+
+        var ofertasParaGuardar = OfertasProveedor
+            .Where(oferta => !EsOfertaVacia(oferta))
+            .ToList();
+        if (ofertasParaGuardar.Any(oferta =>
+                string.IsNullOrWhiteSpace(oferta.Nombre)
+                || string.IsNullOrWhiteSpace(oferta.Marca)
+                || string.IsNullOrWhiteSpace(oferta.Tipo)))
+        {
+            ErrorCarga = "Completa el nombre, la marca y el tipo o categoría de cada repuesto.";
+            return;
+        }
+
+        if (ofertasParaGuardar.Any(oferta => oferta.Cantidad < 0 || oferta.Precio < 0))
+        {
+            ErrorCarga = "La cantidad y el precio de cada repuesto deben ser cero o mayores.";
+            return;
+        }
+
+        Guardando = true;
+        var catalogos = new ProveedoresCatalogos(
+            [],
+            [],
+            [],
+            ofertasParaGuardar);
+
+        try
+        {
+            if (EsEdicion)
+            {
+                if (!await ProveedoresStore.Actualizar(Modelo, catalogos))
+                {
+                    ErrorCarga = "El proveedor ya no existe o fue eliminado por otro usuario.";
+                    return;
+                }
+            }
+            else
+            {
+                await ProveedoresStore.Crear(Modelo, catalogos);
+            }
+
+            Navigation.NavigateTo("/Proveedores");
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible guardar el proveedor. {exception.Message}";
+        }
+        finally
+        {
+            Guardando = false;
+        }
+    }
+
+    private void QuitarOferta(RepuestoOfertaProveedor oferta) => OfertasProveedor.Remove(oferta);
+
+    private void AgregarOferta() => OfertasProveedor.Add(new RepuestoOfertaProveedor());
+
+    private static bool EsOfertaVacia(RepuestoOfertaProveedor oferta) =>
+        string.IsNullOrWhiteSpace(oferta.Nombre)
+        && string.IsNullOrWhiteSpace(oferta.Marca)
+        && string.IsNullOrWhiteSpace(oferta.Tipo)
+        && string.IsNullOrWhiteSpace(oferta.Tamano)
+        && oferta.Cantidad == 0
+        && oferta.Precio == 0;
+
+    private bool ValidarCamposVisibles()
+    {
+        var propiedades = new[]
+        {
+            nameof(Modelo.Nombre),
+            nameof(Modelo.Documento),
+            nameof(Modelo.Telefono),
+            nameof(Modelo.Correo),
+            nameof(Modelo.Ciudad),
+            nameof(Modelo.Estado),
+            nameof(Modelo.Direccion),
+            nameof(Modelo.NombreContacto)
+        };
+        var errores = propiedades
+            .SelectMany(propiedad =>
+            {
+                var contexto = new ValidationContext(Modelo) { MemberName = propiedad };
+                var valor = Modelo.GetType().GetProperty(propiedad)?.GetValue(Modelo);
+                var resultados = new List<ValidationResult>();
+                Validator.TryValidateProperty(valor, contexto, resultados);
+                return resultados;
+            })
+            .Select(error => error.ErrorMessage)
+            .Where(mensaje => !string.IsNullOrWhiteSpace(mensaje))
+            .Distinct()
+            .ToList();
+
+        if (errores.Count == 0)
+        {
+            return true;
+        }
+
+        ErrorCarga = string.Join(" ", errores);
+        return false;
+    }
+
 }

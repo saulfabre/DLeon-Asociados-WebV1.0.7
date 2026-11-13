@@ -2,6 +2,7 @@
 @using DLeon_Asociados_Web.Services
 @using RepuestoModel = DLeon_Asociados_Web.Models.Repuestos
 @inject RepuestosServices RepuestosServices
+@inject ProveedoresStore ProveedoresStore
 
 @if (Visible)
 {
@@ -24,6 +25,10 @@
                         {
                             <div class="alert alert-danger" role="alert">@Error</div>
                         }
+                        @if (!string.IsNullOrWhiteSpace(ErrorProveedores))
+                        {
+                            <div class="alert alert-danger" role="alert">@ErrorProveedores</div>
+                        }
                         <div class="row g-3">
                             <div class="col-sm-6">
                                 <label class="form-label" for="repuesto-nombre">Nombre de la pieza</label>
@@ -32,12 +37,48 @@
                             </div>
                             <div class="col-sm-6">
                                 <label class="form-label" for="repuesto-marca">Marca</label>
-                                <InputText id="repuesto-marca" class="form-control" @bind-Value="Modelo.Marca" maxlength="80" />
+                                @if (MarcasProveedor.Count > 0)
+                                {
+                                    <InputSelect id="repuesto-marca" class="form-select" @bind-Value="Modelo.Marca">
+                                        <option value="">Selecciona una marca</option>
+                                        @foreach (var marca in MarcasProveedor)
+                                        {
+                                            <option value="@marca">@marca</option>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(Modelo.Marca) && !MarcasProveedor.Contains(Modelo.Marca, StringComparer.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@Modelo.Marca">@Modelo.Marca (actual)</option>
+                                        }
+                                    </InputSelect>
+                                }
+                                else
+                                {
+                                    <InputText id="repuesto-marca" class="form-control" @bind-Value="Modelo.Marca" maxlength="80" />
+                                }
                                 <ValidationMessage For="() => Modelo.Marca" />
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label" for="repuesto-tipo">Tipo</label>
-                                <InputText id="repuesto-tipo" class="form-control" @bind-Value="Modelo.Tipo" maxlength="80" />
+                                <label class="form-label" for="repuesto-tipo">
+                                    @(CategoriasProveedor.Count > 0 ? "Pieza o categoría que ofrece" : "Tipo")
+                                </label>
+                                @if (CategoriasProveedor.Count > 0)
+                                {
+                                    <InputSelect id="repuesto-tipo" class="form-select" @bind-Value="Modelo.Tipo">
+                                        <option value="">Selecciona una categoría ofrecida</option>
+                                        @foreach (var categoria in CategoriasProveedor)
+                                        {
+                                            <option value="@categoria">@categoria</option>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(Modelo.Tipo) && !CategoriasProveedor.Contains(Modelo.Tipo, StringComparer.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@Modelo.Tipo">@Modelo.Tipo (actual)</option>
+                                        }
+                                    </InputSelect>
+                                }
+                                else
+                                {
+                                    <InputText id="repuesto-tipo" class="form-control" @bind-Value="Modelo.Tipo" maxlength="80" />
+                                }
                                 <ValidationMessage For="() => Modelo.Tipo" />
                             </div>
                             <div class="col-sm-6">
@@ -57,9 +98,47 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="repuesto-proveedor">Proveedor</label>
-                                <InputText id="repuesto-proveedor" class="form-control" @bind-Value="Modelo.Proveedor" maxlength="120" />
-                                <ValidationMessage For="() => Modelo.Proveedor" />
+                                <InputSelect id="repuesto-proveedor" class="form-select"
+                                             @bind-Value="Modelo.ProveedorId"
+                                             @bind-Value:after="ProveedorSeleccionadoCambiado">
+                                    <option value="">Selecciona un proveedor registrado</option>
+                                    @foreach (var proveedor in ProveedoresDisponibles)
+                                    {
+                                        <option value="@proveedor.Id">@proveedor.Nombre</option>
+                                    }
+                                </InputSelect>
+                                @if (!string.IsNullOrWhiteSpace(Modelo.Proveedor))
+                                {
+                                    <div class="form-text">Proveedor: @Modelo.Proveedor</div>
+                                }
+                                @if (Modelo.ProveedorId.HasValue && CategoriasProveedor.Count == 0)
+                                {
+                                    <div class="form-text">Este proveedor no tiene categorías de piezas registradas; puedes escribir el tipo manualmente.</div>
+                                }
+                                <ValidationMessage For="() => Modelo.ProveedorId" />
                             </div>
+                            @if (OfertasProveedor.Count > 0)
+                            {
+                                <div class="col-12">
+                                    <label class="form-label" for="repuesto-oferta-proveedor">Repuesto que ofrece el proveedor</label>
+                                    <InputSelect id="repuesto-oferta-proveedor" class="form-select"
+                                                 @bind-Value="OfertaSeleccionadaId"
+                                                 @bind-Value:after="OfertaSeleccionadaCambiada">
+                                        <option value="">Selecciona un repuesto para autocompletar</option>
+                                        @foreach (var oferta in OfertasProveedor)
+                                        {
+                                            <option value="@oferta.Id">
+                                                @oferta.Nombre — @oferta.Marca / @oferta.Tipo
+                                                @if (!string.IsNullOrWhiteSpace(oferta.Tamano))
+                                                {
+                                                    <text> / @oferta.Tamano</text>
+                                                }
+                                            </option>
+                                        }
+                                    </InputSelect>
+                                    <div class="form-text">Al elegir un repuesto se completan sus datos y la cantidad y precio registrados por el proveedor. Puedes ajustarlos antes de guardar.</div>
+                                </div>
+                            }
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -96,10 +175,23 @@
     private bool VisibleAnterior { get; set; }
     private int? IdCargado { get; set; }
 
-    protected override void OnParametersSet()
+    private List<Proveedores> ProveedoresDisponibles { get; set; } = [];
+    private Proveedores? ProveedorDetalle { get; set; }
+    private List<string> MarcasProveedor { get; set; } = [];
+    private List<string> CategoriasProveedor { get; set; } = [];
+    private List<RepuestoOfertaProveedor> OfertasProveedor { get; set; } = [];
+    private int? OfertaSeleccionadaId { get; set; }
+    private string? ErrorProveedores { get; set; }
+
+    protected override async Task OnParametersSetAsync()
     {
         if (Visible && (!VisibleAnterior || IdCargado != Repuesto?.Id))
         {
+            ProveedorDetalle = null;
+            MarcasProveedor = [];
+            CategoriasProveedor = [];
+            OfertasProveedor = [];
+            OfertaSeleccionadaId = null;
             Modelo = Repuesto is null
                 ? new RepuestoModel()
                 : new RepuestoModel
@@ -112,13 +204,114 @@
                     Tamano = Repuesto.Tamano,
                     Disponibles = Repuesto.Disponibles,
                     PrecioUnitario = Repuesto.PrecioUnitario,
-                    Proveedor = Repuesto.Proveedor
+                    Proveedor = Repuesto.Proveedor,
+                    ProveedorId = Repuesto.ProveedorId,
+                    ProveedorDetalle = null
                 };
             Error = null;
+            ErrorProveedores = null;
+            OfertaSeleccionadaId = null;
+            ProveedorDetalle = null;
+            OfertasProveedor = [];
             IdCargado = Repuesto?.Id;
+            await CargarProveedores();
         }
 
         VisibleAnterior = Visible;
+    }
+
+    private async Task CargarProveedores()
+    {
+        try
+        {
+            ProveedoresDisponibles = await ProveedoresStore.ObtenerTodos();
+            ProveedoresDisponibles = ProveedoresDisponibles
+                .Where(proveedor => proveedor.Estado == "Activo" || proveedor.Id == Modelo.ProveedorId)
+                .OrderBy(proveedor => proveedor.Nombre)
+                .ToList();
+
+            var proveedor = Modelo.ProveedorId.HasValue
+                ? await ProveedoresStore.ObtenerPorId(Modelo.ProveedorId.Value)
+                : ProveedoresDisponibles.FirstOrDefault(item =>
+                    string.Equals(item.Nombre, Modelo.Proveedor, StringComparison.OrdinalIgnoreCase));
+
+            if (proveedor is not null)
+            {
+                Modelo.ProveedorId = proveedor.Id;
+                Modelo.Proveedor = proveedor.Nombre;
+                if (ProveedoresDisponibles.All(item => item.Id != proveedor.Id))
+                {
+                    ProveedoresDisponibles.Add(proveedor);
+                    ProveedoresDisponibles = ProveedoresDisponibles.OrderBy(item => item.Nombre).ToList();
+                }
+                await CargarCatalogosProveedor(proveedor.Id);
+            }
+        }
+        catch (Exception exception)
+        {
+            ErrorProveedores = $"No fue posible cargar los proveedores. {exception.Message}";
+        }
+    }
+
+    private async Task ProveedorSeleccionadoCambiado()
+    {
+        ProveedorDetalle = null;
+        MarcasProveedor = [];
+        CategoriasProveedor = [];
+        OfertasProveedor = [];
+        OfertaSeleccionadaId = null;
+        Modelo.Proveedor = null;
+
+        if (Modelo.ProveedorId is not int proveedorId)
+        {
+            return;
+        }
+
+        await CargarCatalogosProveedor(proveedorId);
+        if (ProveedorDetalle is not null)
+        {
+            Modelo.Proveedor = ProveedorDetalle.Nombre;
+
+            var ofertaActual = OfertasProveedor.FirstOrDefault(oferta =>
+                string.Equals(oferta.Nombre, Modelo.Nombre, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(oferta.Marca, Modelo.Marca, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(oferta.Tipo, Modelo.Tipo, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(oferta.Tamano, Modelo.Tamano, StringComparison.OrdinalIgnoreCase));
+            OfertaSeleccionadaId = ofertaActual?.Id;
+        }
+    }
+
+    private async Task CargarCatalogosProveedor(int proveedorId)
+    {
+        ProveedorDetalle = await ProveedoresStore.ObtenerPorId(proveedorId);
+        MarcasProveedor = ProveedorDetalle?.Marcas
+            .Select(relacion => relacion.Marca.Nombre)
+            .OrderBy(nombre => nombre)
+            .ToList() ?? [];
+        CategoriasProveedor = ProveedorDetalle?.CategoriasPiezas
+            .Select(relacion => relacion.CategoriaPieza.Nombre)
+            .OrderBy(nombre => nombre)
+            .ToList() ?? [];
+        OfertasProveedor = ProveedorDetalle?.CatalogoRepuestos
+            .OrderBy(oferta => oferta.Nombre)
+            .ThenBy(oferta => oferta.Marca)
+            .ToList() ?? [];
+    }
+
+    private Task OfertaSeleccionadaCambiada()
+    {
+        var oferta = OfertasProveedor.FirstOrDefault(item => item.Id == OfertaSeleccionadaId);
+        if (oferta is not null)
+        {
+            Modelo.Nombre = oferta.Nombre;
+            Modelo.Marca = oferta.Marca;
+            Modelo.Tipo = oferta.Tipo;
+            Modelo.Tamano = oferta.Tamano;
+            Modelo.Disponibles = oferta.Cantidad;
+            Modelo.PrecioUnitario = oferta.Precio;
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task Guardar()

@@ -13,6 +13,7 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
 
         return await contexto.Repuestos
             .AsNoTracking()
+            .Include(repuesto => repuesto.ProveedorDetalle)
             .Where(repuesto => repuesto.Existe)
             .OrderBy(repuesto => repuesto.Nombre)
             .ToListAsync();
@@ -25,6 +26,8 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
 
         repuesto.Existe = true;
         await using var contexto = await contextFactory.CreateDbContextAsync();
+        await AsignarProveedor(contexto, repuesto);
+        repuesto.ProveedorDetalle = null;
         contexto.Repuestos.Add(repuesto);
         await contexto.SaveChangesAsync();
         return repuesto;
@@ -44,6 +47,7 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
             return false;
         }
 
+        await AsignarProveedor(contexto, repuesto);
         existente.Nombre = repuesto.Nombre.Trim();
         existente.Marca = repuesto.Marca.Trim();
         existente.Tipo = repuesto.Tipo.Trim();
@@ -51,6 +55,7 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
         existente.Disponibles = repuesto.Disponibles;
         existente.PrecioUnitario = repuesto.PrecioUnitario;
         existente.Proveedor = NormalizarOpcional(repuesto.Proveedor);
+        existente.ProveedorId = repuesto.ProveedorId;
 
         await contexto.SaveChangesAsync();
         return true;
@@ -90,4 +95,36 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
 
     private static string? NormalizarOpcional(string? valor) =>
         string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
+
+    private static async Task AsignarProveedor(Contexto contexto, Repuestos repuesto)
+    {
+        if (repuesto.ProveedorId is null)
+        {
+            repuesto.Proveedor = NormalizarOpcional(repuesto.Proveedor);
+            return;
+        }
+
+        var proveedor = await contexto.Proveedores
+            .FirstOrDefaultAsync(item => item.Id == repuesto.ProveedorId && item.Existe);
+        if (proveedor is null)
+        {
+            throw new InvalidOperationException("Selecciona un proveedor registrado.");
+        }
+
+        if (proveedor.Estado != "Activo")
+        {
+            var proveedorActualId = repuesto.Id == 0
+                ? null
+                : await contexto.Repuestos
+                    .Where(item => item.Id == repuesto.Id && item.Existe)
+                    .Select(item => item.ProveedorId)
+                    .FirstOrDefaultAsync();
+            if (proveedorActualId != proveedor.Id)
+            {
+                throw new InvalidOperationException("Solo puedes asignar repuestos a proveedores activos.");
+            }
+        }
+
+        repuesto.Proveedor = proveedor.Nombre;
+    }
 }

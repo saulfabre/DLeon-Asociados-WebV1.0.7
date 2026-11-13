@@ -1,6 +1,8 @@
 @page "/Proveedores"
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using DLeon_Asociados_Web.Services
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Components.Pages.Repuesto
 @rendermode InteractiveServer
 @inject IJSRuntime JS
 @inject ProveedoresStore ProveedoresStore
@@ -49,7 +51,20 @@
                 </div>
             </div>
 
-            @if (ProveedoresFiltrados.Count == 0)
+            @if (!string.IsNullOrWhiteSpace(ErrorCarga))
+            {
+                <div class="alert alert-danger" role="alert">@ErrorCarga</div>
+            }
+
+            @if (Cargando)
+            {
+                <div class="estado-vacio" role="status">Cargando proveedores...</div>
+            }
+            else if (!string.IsNullOrWhiteSpace(ErrorCarga))
+            {
+                <div class="estado-vacio" role="status">No se pudieron mostrar los proveedores.</div>
+            }
+            else if (ProveedoresFiltrados.Count == 0)
             {
                 <div class="estado-vacio">
                     @(Proveedores.Count == 0
@@ -60,10 +75,16 @@
             else
             {
                 <div class="tabla-responsive">
-                    <QuickGrid @key="ClaveFiltros" TGridItem="ProveedoresStore.ProveedorRegistro"
+                    <QuickGrid @key="ClaveFiltros" TGridItem="Proveedores"
                                Items="@ProveedoresFiltrados.AsQueryable()" Pagination="@Paginacion"
                                Class="table table-bordered table-hover align-middle tabla-proveedores">
-                        <PropertyColumn Property="proveedor => proveedor.Nombre" Title="Proveedor" Sortable="true" />
+                        <TemplateColumn Title="Proveedor" Sortable="true" SortBy="OrdenNombre" Context="proveedor">
+                            <button type="button" class="proveedor-enlace"
+                                    aria-label="@($"Ver información de {proveedor.Nombre}")"
+                                    @onclick="() => MostrarDetalleProveedor(proveedor.Id)">
+                                @proveedor.Nombre
+                            </button>
+                        </TemplateColumn>
                         <PropertyColumn Property="proveedor => proveedor.Documento" Title="Cédula/RNC" Sortable="true" />
                         <PropertyColumn Property="proveedor => proveedor.Telefono" Title="Teléfono" />
                         <PropertyColumn Property="proveedor => proveedor.Correo" Title="Correo" />
@@ -74,12 +95,13 @@
                         <TemplateColumn Title="Acciones" Class="no-print" Context="proveedor">
                             <div class="acciones-registro">
                                 <a class="btn btn-sm btn-outline-primary"
-                                   href="@($"/Proveedores/Editar?proveedor={Uri.EscapeDataString(proveedor.Nombre)}")"
+                                   href="@($"/Proveedores/Editar/{proveedor.Id}")"
                                    aria-label="@($"Editar {proveedor.Nombre}")">
                                     <i class="cil-pencil" aria-hidden="true"></i>
                                 </a>
                                 <button class="btn btn-sm btn-outline-danger" type="button"
-                                        aria-label="@($"Eliminar {proveedor.Nombre}")">
+                                        aria-label="@($"Eliminar {proveedor.Nombre}")"
+                                        @onclick="() => Eliminar(proveedor)">
                                     <i class="cil-trash" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -91,19 +113,28 @@
             </div>
         </main>
     </div>
+    <ProveedorDetalleModal Visible="MostrarDetalle"
+                           ProveedorId="ProveedorDetalleId"
+                           OnClose="CerrarDetalleProveedor" />
 </AdminLayout>
 
 @code {
     private readonly PaginationState Paginacion = new() { ItemsPerPage = 10 };
-    private IReadOnlyList<ProveedoresStore.ProveedorRegistro> Proveedores => ProveedoresStore.ObtenerTodos();
+    private List<Proveedores> Proveedores = new();
     private string TextoBusqueda = string.Empty;
     private string EstadoFiltro = string.Empty;
     private string CiudadFiltro = string.Empty;
+    private string? ErrorCarga;
+    private bool Cargando = true;
+    private bool MostrarDetalle;
+    private int? ProveedorDetalleId;
 
-    private static GridSort<ProveedoresStore.ProveedorRegistro> OrdenEstado { get; } =
-        GridSort<ProveedoresStore.ProveedorRegistro>.ByAscending(proveedor => proveedor.Estado);
+    private static GridSort<Proveedores> OrdenNombre { get; } =
+        GridSort<Proveedores>.ByAscending(proveedor => proveedor.Nombre);
+    private static GridSort<Proveedores> OrdenEstado { get; } =
+        GridSort<Proveedores>.ByAscending(proveedor => proveedor.Estado);
 
-    private List<ProveedoresStore.ProveedorRegistro> ProveedoresFiltrados => Proveedores
+    private List<Proveedores> ProveedoresFiltrados => Proveedores
         .Where(proveedor => string.IsNullOrWhiteSpace(TextoBusqueda) ||
             proveedor.Nombre.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
             proveedor.Documento.Contains(TextoBusqueda.Trim(), StringComparison.OrdinalIgnoreCase) ||
@@ -115,6 +146,55 @@
         .ToList();
 
     private string ClaveFiltros => $"{TextoBusqueda}|{EstadoFiltro}|{CiudadFiltro}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RecargarProveedores();
+        Cargando = false;
+    }
+
+    private async Task RecargarProveedores()
+    {
+        try
+        {
+            ErrorCarga = null;
+            Proveedores = await ProveedoresStore.ObtenerTodos();
+            await ReiniciarPaginacion();
+        }
+        catch (Exception exception)
+        {
+            Proveedores = new();
+            ErrorCarga = $"No fue posible cargar los proveedores. {exception.Message}";
+        }
+    }
+
+    private async Task Eliminar(Proveedores proveedor)
+    {
+        var confirmar = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"¿Deseas eliminar el proveedor {proveedor.Nombre}?");
+
+        if (!confirmar)
+        {
+            return;
+        }
+
+        try
+        {
+            ErrorCarga = null;
+            if (!await ProveedoresStore.Eliminar(proveedor.Id))
+            {
+                ErrorCarga = "El proveedor ya no existe o fue eliminado por otro usuario.";
+                return;
+            }
+
+            await RecargarProveedores();
+        }
+        catch (Exception exception)
+        {
+            ErrorCarga = $"No fue posible eliminar el proveedor. {exception.Message}";
+        }
+    }
 
     private async Task LimpiarFiltros()
     {
@@ -128,5 +208,17 @@
 
     private Task ImprimirReporte() => JS.InvokeVoidAsync("window.print").AsTask();
 
+    private void MostrarDetalleProveedor(int proveedorId)
+    {
+        ProveedorDetalleId = proveedorId;
+        MostrarDetalle = true;
+    }
+
+    private Task CerrarDetalleProveedor()
+    {
+        MostrarDetalle = false;
+        ProveedorDetalleId = null;
+        return Task.CompletedTask;
+    }
 
 }

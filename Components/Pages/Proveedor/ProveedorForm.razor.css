@@ -1,0 +1,77 @@
+.proveedor-form-section {
+    padding: 8px 0 24px;
+    border-bottom: 1px solid #e3e8ef;
+}
+
+.proveedor-form-section + .proveedor-form-section {
+    padding-top: 24px;
+}
+
+.proveedor-form-section:last-of-type {
+    border-bottom: 0;
+}
+
+.proveedor-section-heading {
+    margin-bottom: 18px;
+}
+
+.proveedor-section-heading h2 {
+    margin: 0 0 4px;
+    color: #172033;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.proveedor-section-heading p {
+    margin: 0;
+    color: #64748b;
+    font-size: .875rem;
+}
+
+.proveedor-catalogo-heading,
+.proveedor-oferta-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.proveedor-oferta-card {
+    margin-top: 14px;
+    padding: 16px;
+    border: 1px solid #dfe6ee;
+    border-radius: 8px;
+    background: #f9fbfd;
+}
+
+.proveedor-oferta-titulo {
+    margin-bottom: 14px;
+    color: #344054;
+}
+
+.proveedor-catalogo-vacio {
+    padding: 18px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    color: #64748b;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .proveedor-form-section {
+        padding-bottom: 18px;
+    }
+
+    .proveedor-form-section + .proveedor-form-section {
+        padding-top: 18px;
+    }
+
+    .proveedor-catalogo-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .proveedor-oferta-card {
+        padding: 12px;
+    }
+}

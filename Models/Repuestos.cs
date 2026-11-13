@@ -32,4 +32,7 @@ public class Repuestos
 
     [StringLength(120)]
     public string? Proveedor { get; set; }
+
+    public int? ProveedorId { get; set; }
+    public Proveedores? ProveedorDetalle { get; set; }
 }

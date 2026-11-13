@@ -1,0 +1,236 @@
+@using DLeon_Asociados_Web.Models
+@using DLeon_Asociados_Web.Services
+@inject ProveedoresStore ProveedoresStore
+
+@if (Visible)
+{
+    <div class="modal-backdrop fade show" @onclick="Cerrar"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+         aria-labelledby="titulo-detalle-proveedor" @onclick="Cerrar">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content proveedor-detalle-modal">
+                <div class="modal-header">
+                    <div>
+                        <div class="text-body-secondary small">Ficha del proveedor</div>
+                        <h2 class="modal-title fs-5" id="titulo-detalle-proveedor">
+                            @(Proveedor?.Nombre ?? "Información del proveedor")
+                        </h2>
+                    </div>
+                    <button type="button" class="btn-close" aria-label="Cerrar" @onclick="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    @if (Cargando)
+                    {
+                        <div class="text-body-secondary" role="status">Cargando información del proveedor...</div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(Error))
+                    {
+                        <div class="alert alert-danger" role="alert">@Error</div>
+                    }
+                    else if (Proveedor is not null)
+                    {
+                        <section class="proveedor-detalle-seccion">
+                            <h3>Información general</h3>
+                            <dl class="proveedor-detalle-grid">
+                                <div><dt>Tipo de proveedor</dt><dd>@Mostrar(Proveedor.TipoProveedor)</dd></div>
+                                <div><dt>Cédula/RNC</dt><dd>@Mostrar(Proveedor.Documento)</dd></div>
+                                <div><dt>Contacto</dt><dd>@Mostrar(Proveedor.NombreContacto)</dd></div>
+                                <div><dt>Teléfono</dt><dd>@Mostrar(Proveedor.Telefono)</dd></div>
+                                <div><dt>Correo</dt><dd>@Mostrar(Proveedor.Correo)</dd></div>
+                                <div>
+                                    <dt>Página web</dt>
+                                    <dd>
+                                        @if (Uri.TryCreate(Proveedor.PaginaWeb, UriKind.Absolute, out var pagina))
+                                        {
+                                            <a href="@pagina" target="_blank" rel="noopener noreferrer">@Proveedor.PaginaWeb</a>
+                                        }
+                                        else
+                                        {
+                                            @Mostrar(Proveedor.PaginaWeb)
+                                        }
+                                    </dd>
+                                </div>
+                                <div><dt>Estado</dt><dd>@Mostrar(Proveedor.Estado)</dd></div>
+                            </dl>
+                        </section>
+
+                        <section class="proveedor-detalle-seccion">
+                            <h3>Ubicación</h3>
+                            <dl class="proveedor-detalle-grid">
+                                <div><dt>País</dt><dd>@Mostrar(Proveedor.Pais)</dd></div>
+                                <div><dt>Provincia</dt><dd>@Mostrar(Proveedor.Provincia)</dd></div>
+                                <div><dt>Ciudad</dt><dd>@Mostrar(Proveedor.Ciudad)</dd></div>
+                                <div class="detalle-ancho"><dt>Dirección</dt><dd>@Mostrar(Proveedor.Direccion)</dd></div>
+                            </dl>
+                        </section>
+
+                        <section class="proveedor-detalle-seccion">
+                            <h3>Información comercial</h3>
+                            <dl class="proveedor-detalle-grid">
+                                <div><dt>Términos de pago</dt><dd>@Mostrar(Proveedor.TerminosPago)</dd></div>
+                                <div><dt>Límite de crédito</dt><dd>@Proveedor.LimiteCredito.ToString("C2")</dd></div>
+                                <div><dt>Entrega estimada</dt><dd>@(Proveedor.TiempoEntregaDias.HasValue ? $"{Proveedor.TiempoEntregaDias} días" : "No especificado")</dd></div>
+                                <div class="detalle-ancho"><dt>Garantía</dt><dd>@Mostrar(Proveedor.GarantiaOfrecida)</dd></div>
+                                <div class="detalle-ancho"><dt>Política de devolución</dt><dd>@Mostrar(Proveedor.PoliticaDevolucion)</dd></div>
+                                <div class="detalle-ancho"><dt>Observaciones</dt><dd>@Mostrar(Proveedor.Observaciones)</dd></div>
+                            </dl>
+                        </section>
+
+                        @if (Proveedor.Marcas.Count > 0
+                            || Proveedor.CategoriasPiezas.Count > 0
+                            || !string.IsNullOrWhiteSpace(Proveedor.TipoPiezas))
+                        {
+                            <section class="proveedor-detalle-seccion">
+                                <h3>Marcas y categorías que ofrece</h3>
+                                <dl class="proveedor-detalle-grid">
+                                    <div><dt>Marcas</dt><dd>@MostrarLista(Proveedor.Marcas.Select(relacion => relacion.Marca.Nombre))</dd></div>
+                                    <div><dt>Categorías de piezas</dt><dd>@MostrarLista(Proveedor.CategoriasPiezas.Select(relacion => relacion.CategoriaPieza.Nombre))</dd></div>
+                                    <div><dt>Tipo de piezas</dt><dd>@Mostrar(Proveedor.TipoPiezas)</dd></div>
+                                </dl>
+                            </section>
+                        }
+
+                        @if (Proveedor.TipoProveedor is TiposProveedor.Vehiculos or TiposProveedor.VehiculosYPiezas)
+                        {
+                            <section class="proveedor-detalle-seccion">
+                                <h3>Información de vehículos</h3>
+                                <dl class="proveedor-detalle-grid">
+                                    <div><dt>Marcas que distribuye</dt><dd>@MostrarLista(Proveedor.Marcas.Select(relacion => relacion.Marca.Nombre))</dd></div>
+                                    <div><dt>Modelos disponibles</dt><dd>@MostrarLista(Proveedor.ModelosVehiculos.Select(relacion => relacion.ModeloVehiculo.Nombre))</dd></div>
+                                    <div><dt>Tipo de vehículos</dt><dd>@Mostrar(Proveedor.TipoVehiculos)</dd></div>
+                                    <div><dt>País de procedencia</dt><dd>@Mostrar(Proveedor.PaisProcedencia)</dd></div>
+                                </dl>
+                            </section>
+                        }
+
+                        @if (Proveedor.TipoProveedor == TiposProveedor.ServiciosAutomotrices)
+                        {
+                            <section class="proveedor-detalle-seccion">
+                                <h3>Servicios automotrices</h3>
+                                <dl class="proveedor-detalle-grid">
+                                    <div><dt>Tipo de servicios</dt><dd>@Mostrar(Proveedor.TipoServicios)</dd></div>
+                                    <div><dt>Especialidad</dt><dd>@Mostrar(Proveedor.Especialidad)</dd></div>
+                                    <div><dt>Zona de cobertura</dt><dd>@Mostrar(Proveedor.ZonaCobertura)</dd></div>
+                                </dl>
+                            </section>
+                        }
+
+                        <section class="proveedor-detalle-seccion">
+                            <h3>Catálogo de repuestos que ofrece</h3>
+                            @if (Proveedor.CatalogoRepuestos.Count == 0)
+                            {
+                                <p class="text-body-secondary mb-0">No hay productos registrados en el catálogo del proveedor.</p>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr><th>Repuesto</th><th>Marca</th><th>Tipo</th><th>Compatibilidad</th><th>Cantidad</th><th>Precio</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var oferta in Proveedor.CatalogoRepuestos.OrderBy(item => item.Nombre))
+                                            {
+                                                <tr>
+                                                    <td>@oferta.Nombre</td>
+                                                    <td>@oferta.Marca</td>
+                                                    <td>@oferta.Tipo</td>
+                                                    <td>@Mostrar(oferta.Tamano)</td>
+                                                    <td>@oferta.Cantidad</td>
+                                                    <td>@oferta.Precio.ToString("C")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </section>
+
+                        <section class="proveedor-detalle-seccion">
+                            <h3>Repuestos registrados con este proveedor</h3>
+                            @if (Proveedor.Repuestos.Count == 0)
+                            {
+                                <p class="text-body-secondary mb-0">Todavía no hay repuestos asociados.</p>
+                            }
+                            else
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr><th>Repuesto</th><th>Marca</th><th>Categoría</th><th>Disponibles</th><th>Precio</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var repuesto in Proveedor.Repuestos.OrderBy(item => item.Nombre))
+                                            {
+                                                <tr>
+                                                    <td>@repuesto.Nombre</td>
+                                                    <td>@repuesto.Marca</td>
+                                                    <td>@repuesto.Tipo</td>
+                                                    <td>@repuesto.Disponibles</td>
+                                                    <td>@repuesto.PrecioUnitario.ToString("C")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </section>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Cerrar">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public int? ProveedorId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Proveedores? Proveedor { get; set; }
+    private bool Cargando { get; set; }
+    private int? IdCargado { get; set; }
+    private string? Error { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Visible || ProveedorId is null || IdCargado == ProveedorId)
+        {
+            return;
+        }
+
+        IdCargado = ProveedorId;
+        Cargando = true;
+        Error = null;
+        try
+        {
+            Proveedor = await ProveedoresStore.ObtenerPorId(ProveedorId.Value);
+            if (Proveedor is null)
+            {
+                Error = "El proveedor ya no existe o fue eliminado.";
+            }
+        }
+        catch (Exception exception)
+        {
+            Error = $"No fue posible cargar el proveedor. {exception.Message}";
+        }
+        finally
+        {
+            Cargando = false;
+        }
+    }
+
+    private Task Cerrar() => OnClose.InvokeAsync();
+
+    private static string Mostrar(string? valor) =>
+        string.IsNullOrWhiteSpace(valor) ? "No especificado" : valor;
+
+    private static string MostrarLista(IEnumerable<string> valores)
+    {
+        var lista = valores.ToArray();
+        return lista.Length == 0 ? "No especificado" : string.Join(", ", lista);
+    }
+}
