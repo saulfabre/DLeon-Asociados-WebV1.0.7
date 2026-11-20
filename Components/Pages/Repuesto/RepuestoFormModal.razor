@@ -3,6 +3,7 @@
 @using RepuestoModel = DLeon_Asociados_Web.Models.Repuestos
 @inject RepuestosServices RepuestosServices
 @inject ProveedoresStore ProveedoresStore
+@inject ILogger<RepuestoFormModal> Logger
 
 @if (Visible)
 {
@@ -117,27 +118,63 @@
                                 }
                                 <ValidationMessage For="() => Modelo.ProveedorId" />
                             </div>
+                            <div class="col-12">
+                                <label class="form-label">Proveedores asociados</label>
+                                <div class="border rounded p-2" style="max-height: 180px; overflow:auto">
+                                    @foreach (var proveedor in ProveedoresDisponibles)
+                                    {
+                                        <label class="d-flex gap-2 py-1"><input type="checkbox" checked="@ProveedoresSeleccionados.Contains(proveedor.Id)" @onchange="e => CambiarProveedor(proveedor.Id, e.Value is true)" /> @proveedor.Nombre</label>
+                                    }
+                                </div>
+                                <div class="form-text">Puedes asociar varios proveedores a este repuesto.</div>
+                            </div>
+                            @if (RepuestosAsociados.Count > 0)
+                            {
+                                <div class="col-12">
+                                    <label class="form-label">Piezas ya asociadas a @ProveedorDetalle?.Nombre</label>
+                                    <div class="list-group">
+                                        @foreach (var repuesto in RepuestosAsociados)
+                                        {
+                                            <div @key="repuesto.Id" class="list-group-item">
+                                                <strong>@repuesto.Nombre</strong>
+                                                <span class="d-block small">@repuesto.Marca / @repuesto.Tipo · Disponibles: @repuesto.Disponibles</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
                             @if (OfertasProveedor.Count > 0)
                             {
                                 <div class="col-12">
-                                    <label class="form-label" for="repuesto-oferta-proveedor">Repuesto que ofrece el proveedor</label>
-                                    <InputSelect id="repuesto-oferta-proveedor" class="form-select"
-                                                 @bind-Value="OfertaSeleccionadaId"
-                                                 @bind-Value:after="OfertaSeleccionadaCambiada">
-                                        <option value="">Selecciona un repuesto para autocompletar</option>
+                                    <label class="form-label">Repuestos que ofrece @ProveedorDetalle?.Nombre</label>
+                                    <div class="list-group">
                                         @foreach (var oferta in OfertasProveedor)
                                         {
-                                            <option value="@oferta.Id">
-                                                @oferta.Nombre — @oferta.Marca / @oferta.Tipo
+                                            <button @key="oferta.Id" type="button"
+                                                    class="list-group-item list-group-item-action @(OfertaSeleccionadaId == oferta.Id ? "active" : string.Empty)"
+                                                    aria-pressed="@(OfertaSeleccionadaId == oferta.Id)"
+                                                    @onclick="() => SeleccionarOferta(oferta)">
+                                                <span class="d-flex justify-content-between gap-3">
+                                                    <strong>@oferta.Nombre</strong>
+                                                    <span>@oferta.Precio.ToString("C")</span>
+                                                </span>
+                                                <span class="d-block small">
+                                                    @oferta.Marca / @oferta.Tipo
                                                 @if (!string.IsNullOrWhiteSpace(oferta.Tamano))
                                                 {
-                                                    <text> / @oferta.Tamano</text>
+                                                        <text> / @oferta.Tamano</text>
                                                 }
-                                            </option>
+                                                    · Disponibles: @oferta.Cantidad
+                                                </span>
+                                            </button>
                                         }
-                                    </InputSelect>
-                                    <div class="form-text">Al elegir un repuesto se completan sus datos y la cantidad y precio registrados por el proveedor. Puedes ajustarlos antes de guardar.</div>
+                                    </div>
+                                    <div class="form-text">Se muestran todas las piezas del catálogo. Selecciona una para completar los datos del repuesto; puedes ajustarlos antes de guardar.</div>
                                 </div>
+                            }
+                            else if (Modelo.ProveedorId.HasValue)
+                            {
+                                <div class="col-12 form-text">Este proveedor no tiene repuestos registrados en su catálogo.</div>
                             }
                         </div>
                     </div>
@@ -180,8 +217,17 @@
     private List<string> MarcasProveedor { get; set; } = [];
     private List<string> CategoriasProveedor { get; set; } = [];
     private List<RepuestoOfertaProveedor> OfertasProveedor { get; set; } = [];
+    private List<RepuestoModel> RepuestosAsociados => ProveedorDetalle is null
+        ? []
+        : ProveedorDetalle.Repuestos
+            .Concat(ProveedorDetalle.DetallesRepuestos.Select(detalle => detalle.Repuesto))
+            .Where(repuesto => repuesto.Existe)
+            .DistinctBy(repuesto => repuesto.Id)
+            .OrderBy(repuesto => repuesto.Nombre)
+            .ToList();
     private int? OfertaSeleccionadaId { get; set; }
     private string? ErrorProveedores { get; set; }
+    private HashSet<int> ProveedoresSeleccionados { get; set; } = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -209,6 +255,8 @@
                     ProveedorDetalle = null
                 };
             Error = null;
+            ProveedoresSeleccionados = Repuesto?.DetallesProveedores.Select(detalle => detalle.ProveedorId).ToHashSet() ?? [];
+            if (ProveedoresSeleccionados.Count == 0 && Modelo.ProveedorId.HasValue) ProveedoresSeleccionados.Add(Modelo.ProveedorId.Value);
             ErrorProveedores = null;
             OfertaSeleccionadaId = null;
             ProveedorDetalle = null;
@@ -224,7 +272,7 @@
     {
         try
         {
-            ProveedoresDisponibles = await ProveedoresStore.ObtenerTodos();
+            ProveedoresDisponibles = await RepuestosServices.ObtenerProveedoresDisponibles();
             ProveedoresDisponibles = ProveedoresDisponibles
                 .Where(proveedor => proveedor.Estado == "Activo" || proveedor.Id == Modelo.ProveedorId)
                 .OrderBy(proveedor => proveedor.Nombre)
@@ -245,11 +293,13 @@
                     ProveedoresDisponibles = ProveedoresDisponibles.OrderBy(item => item.Nombre).ToList();
                 }
                 await CargarCatalogosProveedor(proveedor.Id);
+                MarcarOfertaActual();
             }
         }
         catch (Exception exception)
         {
-            ErrorProveedores = $"No fue posible cargar los proveedores. {exception.Message}";
+            Logger.LogError(exception, "No se pudieron cargar los proveedores disponibles.");
+            ErrorProveedores = "No se pudieron cargar los proveedores. Inténtalo de nuevo.";
         }
     }
 
@@ -271,13 +321,7 @@
         if (ProveedorDetalle is not null)
         {
             Modelo.Proveedor = ProveedorDetalle.Nombre;
-
-            var ofertaActual = OfertasProveedor.FirstOrDefault(oferta =>
-                string.Equals(oferta.Nombre, Modelo.Nombre, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(oferta.Marca, Modelo.Marca, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(oferta.Tipo, Modelo.Tipo, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(oferta.Tamano, Modelo.Tamano, StringComparison.OrdinalIgnoreCase));
-            OfertaSeleccionadaId = ofertaActual?.Id;
+            MarcarOfertaActual();
         }
     }
 
@@ -298,20 +342,25 @@
             .ToList() ?? [];
     }
 
-    private Task OfertaSeleccionadaCambiada()
+    private void MarcarOfertaActual()
     {
-        var oferta = OfertasProveedor.FirstOrDefault(item => item.Id == OfertaSeleccionadaId);
-        if (oferta is not null)
-        {
-            Modelo.Nombre = oferta.Nombre;
-            Modelo.Marca = oferta.Marca;
-            Modelo.Tipo = oferta.Tipo;
-            Modelo.Tamano = oferta.Tamano;
-            Modelo.Disponibles = oferta.Cantidad;
-            Modelo.PrecioUnitario = oferta.Precio;
-        }
+        var oferta = OfertasProveedor.FirstOrDefault(oferta =>
+            string.Equals(oferta.Nombre, Modelo.Nombre, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(oferta.Marca, Modelo.Marca, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(oferta.Tipo, Modelo.Tipo, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(oferta.Tamano, Modelo.Tamano, StringComparison.OrdinalIgnoreCase));
+        OfertaSeleccionadaId = oferta?.Id;
+    }
 
-        return Task.CompletedTask;
+    private void SeleccionarOferta(RepuestoOfertaProveedor oferta)
+    {
+        OfertaSeleccionadaId = oferta.Id;
+        Modelo.Nombre = oferta.Nombre;
+        Modelo.Marca = oferta.Marca;
+        Modelo.Tipo = oferta.Tipo;
+        Modelo.Tamano = oferta.Tamano;
+        Modelo.Disponibles = oferta.Cantidad;
+        Modelo.PrecioUnitario = oferta.Precio;
     }
 
     private async Task Guardar()
@@ -327,9 +376,9 @@
         {
             if (Modelo.Id == 0)
             {
-                await RepuestosServices.Crear(Modelo);
+                await RepuestosServices.Crear(Modelo, ProveedoresSeleccionados.ToArray());
             }
-            else if (!await RepuestosServices.Actualizar(Modelo))
+            else if (!await RepuestosServices.Actualizar(Modelo, ProveedoresSeleccionados.ToArray()))
             {
                 Error = "El repuesto ya no existe o fue eliminado por otro usuario.";
                 return;
@@ -340,7 +389,8 @@
         }
         catch (Exception exception)
         {
-            Error = exception.Message;
+            Logger.LogError(exception, "No se pudo guardar el repuesto {RepuestoId}.", Modelo.Id);
+            Error = "No se pudo guardar el repuesto. Revisa que los proveedores seleccionados sigan activos e inténtalo de nuevo.";
         }
         finally
         {
@@ -349,4 +399,10 @@
     }
 
     private Task Cancelar() => Guardando ? Task.CompletedTask : VisibleChanged.InvokeAsync(false);
+
+    private void CambiarProveedor(int id, bool seleccionado)
+    {
+        if (seleccionado) ProveedoresSeleccionados.Add(id);
+        else ProveedoresSeleccionados.Remove(id);
+    }
 }

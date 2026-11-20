@@ -84,3 +84,18 @@ public class RepuestoOfertaProveedor
     [Range(typeof(decimal), "0", "100000000")]
     public decimal Precio { get; set; }
 }
+
+public class ProveedorRepuesto
+{
+    public int DetalleProveedorId { get; set; }
+    public int ProveedorId { get; set; }
+    public Proveedores Proveedor { get; set; } = null!;
+    public int RepuestoId { get; set; }
+    public Repuestos Repuesto { get; set; } = null!;
+    public decimal? PrecioCompra { get; set; }
+    public string? CodigoReferencia { get; set; }
+    public int? TiempoEntrega { get; set; }
+    public bool EsPrincipal { get; set; }
+    public string? Observacion { get; set; }
+    public bool Estado { get; set; } = true;
+}

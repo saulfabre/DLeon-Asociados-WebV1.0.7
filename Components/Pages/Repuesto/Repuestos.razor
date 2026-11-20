@@ -72,7 +72,14 @@
                             </span>
                         </TemplateColumn>
                         <TemplateColumn Title="Proveedor" Sortable="true" SortBy="OrdenProveedor" Context="repuesto">
-                            @if (repuesto.ProveedorDetalle is not null)
+                            @if (repuesto.DetallesProveedores.Count > 0)
+                            {
+                                @foreach (var detalle in repuesto.DetallesProveedores)
+                                {
+                                    <button type="button" class="proveedor-enlace me-1" @onclick="() => MostrarProveedor(detalle.ProveedorId)">@detalle.Proveedor.Nombre</button>
+                                }
+                            }
+                            else if (repuesto.ProveedorDetalle is not null)
                             {
                                 <button type="button" class="proveedor-enlace"
                                         @onclick="() => MostrarProveedor(repuesto.ProveedorDetalle.Id)"
