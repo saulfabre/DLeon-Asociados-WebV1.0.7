@@ -10,7 +10,8 @@ public sealed record ProveedoresCatalogos(
     IReadOnlyCollection<string> Marcas,
     IReadOnlyCollection<string> Modelos,
     IReadOnlyCollection<string> Categorias,
-    IReadOnlyCollection<RepuestoOfertaProveedor> RepuestosOfrecidos);
+    IReadOnlyCollection<RepuestoOfertaProveedor> RepuestosOfrecidos,
+    IReadOnlyCollection<int> RepuestosIds);
 
 public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
 {
@@ -41,6 +42,7 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
             .Include(proveedor => proveedor.CategoriasPiezas)
                 .ThenInclude(relacion => relacion.CategoriaPieza)
             .Include(proveedor => proveedor.CatalogoRepuestos)
+            .Include(proveedor => proveedor.DetallesRepuestos).ThenInclude(detalle => detalle.Repuesto)
             .Include(proveedor => proveedor.Repuestos.Where(repuesto => repuesto.Existe))
             .FirstOrDefaultAsync(proveedor => proveedor.Id == id && proveedor.Existe);
     }
@@ -59,6 +61,7 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
         contexto.Proveedores.Add(proveedor);
         await contexto.SaveChangesAsync();
         await SincronizarCatalogos(contexto, proveedor, catalogos);
+        await SincronizarRepuestos(contexto, proveedor, catalogos.RepuestosIds);
         SincronizarRepuestosOfrecidos(contexto, proveedor, proveedor.CatalogoRepuestos, catalogos.RepuestosOfrecidos);
         await contexto.SaveChangesAsync();
         await transaccion.CommitAsync();
@@ -80,6 +83,7 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
             .Include(item => item.ModelosVehiculos)
             .Include(item => item.CategoriasPiezas)
             .Include(item => item.CatalogoRepuestos)
+            .Include(item => item.DetallesRepuestos)
             .FirstOrDefaultAsync(item => item.Id == proveedor.Id && item.Existe);
 
         if (existente is null)
@@ -88,10 +92,30 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
         }
 
         CopiarDatos(proveedor, existente);
+        await SincronizarRepuestos(contexto, existente, catalogos.RepuestosIds);
         SincronizarRepuestosOfrecidos(contexto, existente, existente.CatalogoRepuestos, catalogos.RepuestosOfrecidos);
         await contexto.SaveChangesAsync();
         await transaccion.CommitAsync();
         return true;
+    }
+
+    public async Task<List<Repuestos>> ObtenerRepuestosDisponibles(string? busqueda = null)
+    {
+        await using var contexto = await contextFactory.CreateDbContextAsync();
+        var query = contexto.Repuestos.AsNoTracking().Where(item => item.Existe);
+        if (!string.IsNullOrWhiteSpace(busqueda)) query = query.Where(item => item.Nombre.Contains(busqueda.Trim()));
+        return await query.OrderBy(item => item.Nombre).ToListAsync();
+    }
+
+    private static async Task SincronizarRepuestos(Contexto contexto, Proveedores proveedor, IReadOnlyCollection<int> ids)
+    {
+        var idsUnicos = ids.Distinct().ToHashSet();
+        var validos = await contexto.Repuestos.Where(item => item.Existe && idsUnicos.Contains(item.Id)).Select(item => item.Id).ToListAsync();
+        if (validos.Count != idsUnicos.Count) throw new InvalidOperationException("Uno o más repuestos seleccionados ya no están disponibles.");
+        foreach (var actual in proveedor.DetallesRepuestos.Where(item => !idsUnicos.Contains(item.RepuestoId)).ToList())
+            contexto.ProveedoresRepuestos.Remove(actual);
+        foreach (var id in idsUnicos.Where(id => proveedor.DetallesRepuestos.All(item => item.RepuestoId != id)))
+            proveedor.DetallesRepuestos.Add(new ProveedorRepuesto { Proveedor = proveedor, RepuestoId = id });
     }
 
     public async Task<bool> Eliminar(int id)
@@ -119,6 +143,7 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
         destino.Ciudad = origen.Ciudad;
         destino.Estado = origen.Estado;
         destino.Direccion = origen.Direccion;
+        destino.Descripcion = origen.Descripcion;
         destino.TipoProveedor = origen.TipoProveedor;
         destino.NombreContacto = origen.NombreContacto;
         destino.PaginaWeb = origen.PaginaWeb;
@@ -331,6 +356,7 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
         proveedor.Ciudad = Normalizar(proveedor.Ciudad);
         proveedor.Estado = Normalizar(proveedor.Estado);
         proveedor.Direccion = Normalizar(proveedor.Direccion);
+        proveedor.Descripcion = Normalizar(proveedor.Descripcion);
         proveedor.TipoProveedor = Normalizar(proveedor.TipoProveedor);
         proveedor.NombreContacto = Normalizar(proveedor.NombreContacto);
         proveedor.PaginaWeb = Normalizar(proveedor.PaginaWeb);
@@ -385,7 +411,8 @@ public sealed class ProveedoresStore(IDbContextFactory<Contexto> contextFactory)
                 Tamano = string.IsNullOrWhiteSpace(oferta.Tamano) ? null : oferta.Tamano.Trim(),
                 Cantidad = oferta.Cantidad,
                 Precio = oferta.Precio
-            }).ToArray());
+            }).ToArray(),
+            catalogos.RepuestosIds.Distinct().ToArray());
 
     private static void ValidarCatalogos(ProveedoresCatalogos catalogos)
     {

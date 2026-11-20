@@ -5,6 +5,8 @@
 @using System.ComponentModel.DataAnnotations
 @using DLeon_Asociados_Web.Services
 @using DLeon_Asociados_Web.Models
+@using System.Text.Json
+@inject IJSRuntime JS
 @inject ProveedoresStore ProveedoresStore
 @inject NavigationManager Navigation
 
@@ -41,7 +43,7 @@
             }
             else
             {
-                <EditForm Model="Modelo" OnSubmit="Guardar" class="admin-form-card">
+                <EditForm EditContext="Formulario" OnSubmit="Guardar" class="admin-form-card">
 
                     <section class="proveedor-form-section" aria-labelledby="seccion-general">
                         <div class="proveedor-section-heading">
@@ -91,7 +93,33 @@
                                 <InputText id="supplier-address" class="form-control" placeholder="Dirección del proveedor"
                                            @bind-Value="Modelo.Direccion" maxlength="250" />
                             </div>
+                            <div class="admin-form-field admin-form-field-full">
+                                <label for="supplier-description">Descripción</label>
+                                <InputTextArea id="supplier-description" class="form-control" rows="4"
+                                               placeholder="Describe los productos o servicios que ofrece el proveedor"
+                                               @bind-Value="Modelo.Descripcion" maxlength="2000" />
+                            </div>
                         </div>
+                    </section>
+
+                    <section class="proveedor-form-section" aria-labelledby="relacion-repuestos">
+                        <div class="proveedor-section-heading">
+                            <h2 id="relacion-repuestos">Repuestos que suministra</h2>
+                            <p>Selecciona repuestos ya registrados. Busca por nombre y marca las piezas asociadas.</p>
+                        </div>
+                        <InputText class="form-control mb-2" placeholder="Buscar repuesto por nombre" @bind-Value="BusquedaRepuestos" @bind-Value:event="oninput" />
+                        <div class="border rounded p-2" style="max-height: 220px; overflow:auto">
+                            @foreach (var repuesto in RepuestosDisponibles.Where(item => string.IsNullOrWhiteSpace(BusquedaRepuestos) || item.Nombre.Contains(BusquedaRepuestos, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                <label class="d-flex gap-2 py-1"><input type="checkbox" checked="@RepuestosSeleccionados.Contains(repuesto.Id)" @onchange="e => CambiarRepuesto(repuesto.Id, e.Value is true)" /> @repuesto.Nombre — @repuesto.Marca</label>
+                            }
+                        </div>
+                        <div class="form-text">Seleccionados: @string.Join(", ", RepuestosDisponibles.Where(item => RepuestosSeleccionados.Contains(item.Id)).Select(item => item.Nombre))</div>
+                        @if (!EsEdicion)
+                        {
+                            <button class="btn btn-outline-secondary mt-3" type="button" @onclick="IrARepuestos">Ir al módulo de repuestos</button>
+                            <div class="form-text">El borrador del proveedor se conserva si sales para agregar un repuesto y vuelves a este formulario.</div>
+                        }
                     </section>
 
                     <section class="proveedor-form-section" aria-labelledby="seccion-catalogo-repuestos">
@@ -118,7 +146,7 @@
                                     <strong>Repuesto @(indice + 1)</strong>
                                     <button class="btn btn-sm btn-outline-danger" type="button"
                                             aria-label="@($"Quitar repuesto {indice + 1}")"
-                                            @onclick="() => QuitarOferta(oferta)">
+                                            @onclick="() => QuitarOfertaYGuardar(oferta)">
                                         <i class="cil-trash" aria-hidden="true"></i> Quitar
                                     </button>
                                 </div>
@@ -126,32 +154,32 @@
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-name-{indice}")">Nombre de la pieza*</label>
                                         <InputText id="@($"supplier-offer-name-{indice}")" class="form-control"
-                                                   @bind-Value="oferta.Nombre" maxlength="120" />
+                                                   @bind-Value="oferta.Nombre" @bind-Value:after="GuardarBorrador" maxlength="120" />
                                     </div>
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-brand-{indice}")">Marca*</label>
                                         <InputText id="@($"supplier-offer-brand-{indice}")" class="form-control"
-                                                   @bind-Value="oferta.Marca" maxlength="80" />
+                                                   @bind-Value="oferta.Marca" @bind-Value:after="GuardarBorrador" maxlength="80" />
                                     </div>
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-type-{indice}")">Tipo o categoría*</label>
                                         <InputText id="@($"supplier-offer-type-{indice}")" class="form-control"
-                                                   @bind-Value="oferta.Tipo" maxlength="80" />
+                                                   @bind-Value="oferta.Tipo" @bind-Value:after="GuardarBorrador" maxlength="80" />
                                     </div>
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-size-{indice}")">Tamaño o compatibilidad</label>
                                         <InputText id="@($"supplier-offer-size-{indice}")" class="form-control"
-                                                   @bind-Value="oferta.Tamano" maxlength="120" />
+                                                   @bind-Value="oferta.Tamano" @bind-Value:after="GuardarBorrador" maxlength="120" />
                                     </div>
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-quantity-{indice}")">Cantidad disponible</label>
                                         <InputNumber id="@($"supplier-offer-quantity-{indice}")" class="form-control"
-                                                     @bind-Value="oferta.Cantidad" min="0" />
+                                                     @bind-Value="oferta.Cantidad" @bind-Value:after="GuardarBorrador" min="0" />
                                     </div>
                                     <div class="admin-form-field">
                                         <label for="@($"supplier-offer-price-{indice}")">Precio unitario</label>
                                         <InputNumber id="@($"supplier-offer-price-{indice}")" class="form-control"
-                                                     @bind-Value="oferta.Precio" min="0" step="0.01" />
+                                                     @bind-Value="oferta.Precio" @bind-Value:after="GuardarBorrador" min="0" step="0.01" />
                                     </div>
                                 </div>
                             </div>
@@ -183,9 +211,23 @@
     private bool Cargando = true;
     private bool Guardando;
     private string? ErrorCarga;
+    private List<Repuestos> RepuestosDisponibles = [];
+    private HashSet<int> RepuestosSeleccionados = [];
+    private string BusquedaRepuestos = string.Empty;
+    private const string ClaveBorrador = "dleon:proveedor:nuevo:borrador";
+    private EditContext Formulario = default!;
+    private bool BorradorRestaurado;
+
+    private sealed record BorradorProveedor(Proveedores Modelo, List<RepuestoOfertaProveedor> Ofertas, int[] RepuestosIds);
+
+    protected override void OnInitialized()
+    {
+        CrearEditContext();
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        RepuestosDisponibles = await ProveedoresStore.ObtenerRepuestosDisponibles();
         if (Id.HasValue)
         {
             try
@@ -194,6 +236,7 @@
                 if (proveedor is not null)
                 {
                     Modelo = proveedor;
+                    RepuestosSeleccionados = proveedor.DetallesRepuestos.Select(detalle => detalle.RepuestoId).ToHashSet();
                     OfertasProveedor = proveedor.CatalogoRepuestos
                         .Select(oferta => new RepuestoOfertaProveedor
                         {
@@ -216,13 +259,58 @@
                     ErrorCarga = "El proveedor no existe o fue eliminado.";
                 }
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                ErrorCarga = $"No fue posible cargar el proveedor. {exception.Message}";
+                ErrorCarga = "No fue posible cargar los datos del proveedor. Inténtalo de nuevo.";
             }
         }
 
         Cargando = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || EsEdicion) return;
+        try
+        {
+            var json = await JS.InvokeAsync<string?>("sessionStorage.getItem", ClaveBorrador);
+            if (!string.IsNullOrWhiteSpace(json))
+            {
+                var borrador = JsonSerializer.Deserialize<BorradorProveedor>(json);
+                if (borrador is not null)
+                {
+                    Modelo = borrador.Modelo;
+                    OfertasProveedor = borrador.Ofertas.Count == 0 ? [new()] : borrador.Ofertas;
+                    RepuestosSeleccionados = borrador.RepuestosIds.ToHashSet();
+                    CrearEditContext();
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception)
+        {
+            ErrorCarga = "No se pudo recuperar el borrador guardado en esta sesión.";
+        }
+        BorradorRestaurado = true;
+    }
+
+    private void CrearEditContext()
+    {
+        Formulario = new EditContext(Modelo);
+        Formulario.OnFieldChanged += (_, _) => _ = GuardarBorrador();
+    }
+
+    private async Task GuardarBorrador()
+    {
+        if (EsEdicion || !BorradorRestaurado) return;
+        var json = JsonSerializer.Serialize(new BorradorProveedor(Modelo, OfertasProveedor, RepuestosSeleccionados.ToArray()));
+        await JS.InvokeVoidAsync("sessionStorage.setItem", ClaveBorrador, json);
+    }
+
+    private async Task IrARepuestos()
+    {
+        await GuardarBorrador();
+        Navigation.NavigateTo("/Repuestos");
     }
 
     private Task Guardar(EditContext _) => GuardarCambios();
@@ -277,7 +365,8 @@
             [],
             [],
             [],
-            ofertasParaGuardar);
+            ofertasParaGuardar,
+            RepuestosSeleccionados.ToArray());
 
         try
         {
@@ -292,6 +381,7 @@
             else
             {
                 await ProveedoresStore.Crear(Modelo, catalogos);
+                await JS.InvokeVoidAsync("sessionStorage.removeItem", ClaveBorrador);
             }
 
             Navigation.NavigateTo("/Proveedores");
@@ -306,9 +396,24 @@
         }
     }
 
-    private void QuitarOferta(RepuestoOfertaProveedor oferta) => OfertasProveedor.Remove(oferta);
+    private async Task QuitarOfertaYGuardar(RepuestoOfertaProveedor oferta)
+    {
+        OfertasProveedor.Remove(oferta);
+        await GuardarBorrador();
+    }
 
-    private void AgregarOferta() => OfertasProveedor.Add(new RepuestoOfertaProveedor());
+    private async Task AgregarOferta()
+    {
+        OfertasProveedor.Add(new RepuestoOfertaProveedor());
+        await GuardarBorrador();
+    }
+
+    private void CambiarRepuesto(int id, bool seleccionado)
+    {
+        if (seleccionado) RepuestosSeleccionados.Add(id);
+        else RepuestosSeleccionados.Remove(id);
+        _ = GuardarBorrador();
+    }
 
     private static bool EsOfertaVacia(RepuestoOfertaProveedor oferta) =>
         string.IsNullOrWhiteSpace(oferta.Nombre)

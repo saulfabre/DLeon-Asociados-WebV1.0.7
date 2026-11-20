@@ -88,6 +88,11 @@
                         <PropertyColumn Property="proveedor => proveedor.Documento" Title="Cédula/RNC" Sortable="true" />
                         <PropertyColumn Property="proveedor => proveedor.Telefono" Title="Teléfono" />
                         <PropertyColumn Property="proveedor => proveedor.Correo" Title="Correo" />
+                        <TemplateColumn Title="Descripción" Context="proveedor">
+                            <span class="descripcion-proveedor" title="@proveedor.Descripcion">
+                                @(string.IsNullOrWhiteSpace(proveedor.Descripcion) ? "—" : proveedor.Descripcion)
+                            </span>
+                        </TemplateColumn>
                         <PropertyColumn Property="proveedor => proveedor.Ciudad" Title="Ciudad" Sortable="true" />
                         <TemplateColumn Title="Estado" Sortable="true" SortBy="OrdenEstado" Context="proveedor">
                             @proveedor.Estado

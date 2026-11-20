@@ -35,4 +35,5 @@ public class Repuestos
 
     public int? ProveedorId { get; set; }
     public Proveedores? ProveedorDetalle { get; set; }
+    public ICollection<ProveedorRepuesto> DetallesProveedores { get; set; } = new List<ProveedorRepuesto>();
 }

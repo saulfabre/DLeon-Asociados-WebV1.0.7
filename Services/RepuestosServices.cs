@@ -14,31 +14,37 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
         return await contexto.Repuestos
             .AsNoTracking()
             .Include(repuesto => repuesto.ProveedorDetalle)
+            .Include(repuesto => repuesto.DetallesProveedores).ThenInclude(detalle => detalle.Proveedor)
             .Where(repuesto => repuesto.Existe)
             .OrderBy(repuesto => repuesto.Nombre)
             .ToListAsync();
     }
 
-    public async Task<Repuestos> Crear(Repuestos repuesto)
+    public async Task<Repuestos> Crear(Repuestos repuesto, IReadOnlyCollection<int>? proveedoresIds = null)
     {
         ArgumentNullException.ThrowIfNull(repuesto);
         Validar(repuesto);
 
         repuesto.Existe = true;
         await using var contexto = await contextFactory.CreateDbContextAsync();
+        await using var transaccion = await contexto.Database.BeginTransactionAsync();
         await AsignarProveedor(contexto, repuesto);
         repuesto.ProveedorDetalle = null;
         contexto.Repuestos.Add(repuesto);
         await contexto.SaveChangesAsync();
+        await SincronizarProveedores(contexto, repuesto, proveedoresIds ?? (repuesto.ProveedorId.HasValue ? [repuesto.ProveedorId.Value] : []));
+        await contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
         return repuesto;
     }
 
-    public async Task<bool> Actualizar(Repuestos repuesto)
+    public async Task<bool> Actualizar(Repuestos repuesto, IReadOnlyCollection<int>? proveedoresIds = null)
     {
         ArgumentNullException.ThrowIfNull(repuesto);
         Validar(repuesto);
 
         await using var contexto = await contextFactory.CreateDbContextAsync();
+        await using var transaccion = await contexto.Database.BeginTransactionAsync();
         var existente = await contexto.Repuestos
             .FirstOrDefaultAsync(item => item.Id == repuesto.Id && item.Existe);
 
@@ -57,8 +63,28 @@ public class RepuestosServices(IDbContextFactory<Contexto> contextFactory)
         existente.Proveedor = NormalizarOpcional(repuesto.Proveedor);
         existente.ProveedorId = repuesto.ProveedorId;
 
+        await contexto.Entry(existente).Collection(item => item.DetallesProveedores).LoadAsync();
+        await SincronizarProveedores(contexto, existente, proveedoresIds ?? (repuesto.ProveedorId.HasValue ? [repuesto.ProveedorId.Value] : []));
+
         await contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
         return true;
+    }
+
+    public async Task<List<Proveedores>> ObtenerProveedoresDisponibles()
+    {
+        await using var contexto = await contextFactory.CreateDbContextAsync();
+        return await contexto.Proveedores.AsNoTracking().Where(item => item.Existe && item.Estado == "Activo").OrderBy(item => item.Nombre).ToListAsync();
+    }
+
+    private static async Task SincronizarProveedores(Contexto contexto, Repuestos repuesto, IReadOnlyCollection<int> ids)
+    {
+        var deseados = ids.Distinct().ToHashSet();
+        var validos = await contexto.Proveedores.Where(item => item.Existe && item.Estado == "Activo" && deseados.Contains(item.Id)).Select(item => item.Id).ToListAsync();
+        if (validos.Count != deseados.Count) throw new InvalidOperationException("Selecciona proveedores activos registrados.");
+        foreach (var actual in repuesto.DetallesProveedores.Where(item => !deseados.Contains(item.ProveedorId)).ToList()) contexto.ProveedoresRepuestos.Remove(actual);
+        foreach (var id in deseados.Where(id => repuesto.DetallesProveedores.All(item => item.ProveedorId != id)))
+            repuesto.DetallesProveedores.Add(new ProveedorRepuesto { Repuesto = repuesto, ProveedorId = id });
     }
 
     public async Task<bool> Eliminar(int id)

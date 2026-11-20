@@ -22,6 +22,9 @@ public class Proveedores
     [StringLength(250)]
     public string Direccion { get; set; } = string.Empty;
 
+    [StringLength(2000)]
+    public string Descripcion { get; set; } = string.Empty;
+
     [StringLength(50)]
     public string TipoProveedor { get; set; } = string.Empty;
     [StringLength(120)]
@@ -63,6 +66,7 @@ public class Proveedores
     public ICollection<ProveedorCategoriaPieza> CategoriasPiezas { get; set; } = new List<ProveedorCategoriaPieza>();
     public ICollection<Repuestos> Repuestos { get; set; } = new List<Repuestos>();
     public ICollection<RepuestoOfertaProveedor> CatalogoRepuestos { get; set; } = new List<RepuestoOfertaProveedor>();
+    public ICollection<ProveedorRepuesto> DetallesRepuestos { get; set; } = new List<ProveedorRepuesto>();
 }
 
 public static class TiposProveedor

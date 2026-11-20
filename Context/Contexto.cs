@@ -23,6 +23,7 @@ public class Contexto : DbContext
 	public DbSet<ProveedorModeloVehiculo> ProveedoresModelosVehiculos { get; set; }
 	public DbSet<ProveedorCategoriaPieza> ProveedoresCategoriasPiezas { get; set; }
 	public DbSet<RepuestoOfertaProveedor> RepuestosOfrecidosProveedor { get; set; }
+	public DbSet<ProveedorRepuesto> ProveedoresRepuestos { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -127,6 +128,7 @@ public class Contexto : DbContext
 			entity.Property(proveedor => proveedor.Ciudad).HasMaxLength(100).IsRequired();
 			entity.Property(proveedor => proveedor.Estado).HasMaxLength(20).IsRequired();
 			entity.Property(proveedor => proveedor.Direccion).HasMaxLength(250);
+			entity.Property(proveedor => proveedor.Descripcion).HasMaxLength(2000).HasDefaultValue(string.Empty).IsRequired();
 			entity.Property(proveedor => proveedor.TipoProveedor).HasMaxLength(50).HasDefaultValue(string.Empty).IsRequired();
 			entity.Property(proveedor => proveedor.NombreContacto).HasMaxLength(120).HasDefaultValue(string.Empty).IsRequired();
 			entity.Property(proveedor => proveedor.PaginaWeb).HasMaxLength(200).HasDefaultValue(string.Empty).IsRequired();
@@ -218,6 +220,19 @@ public class Contexto : DbContext
 				.WithMany(proveedor => proveedor.CatalogoRepuestos)
 				.HasForeignKey(oferta => oferta.ProveedorId)
 				.OnDelete(DeleteBehavior.Cascade);
+		});
+
+		modelBuilder.Entity<ProveedorRepuesto>(entity =>
+		{
+			entity.HasKey(detalle => detalle.DetalleProveedorId);
+			entity.HasIndex(detalle => new { detalle.ProveedorId, detalle.RepuestoId }).IsUnique();
+			entity.Property(detalle => detalle.PrecioCompra).HasColumnType("decimal(18,2)");
+			entity.Property(detalle => detalle.CodigoReferencia).HasMaxLength(100);
+			entity.Property(detalle => detalle.Observacion).HasMaxLength(500);
+			entity.HasOne(detalle => detalle.Proveedor).WithMany(proveedor => proveedor.DetallesRepuestos)
+				.HasForeignKey(detalle => detalle.ProveedorId).OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne(detalle => detalle.Repuesto).WithMany(repuesto => repuesto.DetallesProveedores)
+				.HasForeignKey(detalle => detalle.RepuestoId).OnDelete(DeleteBehavior.Cascade);
 		});
 	}
 }

@@ -216,6 +216,50 @@ namespace DLeon_Asociados_Web.Migrations
                     b.ToTable("ProveedoresModelosVehiculos");
                 });
 
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorRepuesto", b =>
+                {
+                    b.Property<int>("DetalleProveedorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DetalleProveedorId"));
+
+                    b.Property<string>("CodigoReferencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("EsPrincipal")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("PrecioCompra")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RepuestoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TiempoEntrega")
+                        .HasColumnType("int");
+
+                    b.HasKey("DetalleProveedorId");
+
+                    b.HasIndex("RepuestoId");
+
+                    b.HasIndex("ProveedorId", "RepuestoId")
+                        .IsUnique();
+
+                    b.ToTable("ProveedoresRepuestos");
+                });
+
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Proveedores", b =>
                 {
                     b.Property<int>("Id")
@@ -233,6 +277,13 @@ namespace DLeon_Asociados_Web.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasDefaultValue("");
 
                     b.Property<string>("Direccion")
                         .IsRequired()
@@ -740,6 +791,25 @@ namespace DLeon_Asociados_Web.Migrations
                     b.Navigation("Proveedor");
                 });
 
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.ProveedorRepuesto", b =>
+                {
+                    b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
+                        .WithMany("DetallesRepuestos")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DLeon_Asociados_Web.Models.Repuestos", "Repuesto")
+                        .WithMany("DetallesProveedores")
+                        .HasForeignKey("RepuestoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Proveedor");
+
+                    b.Navigation("Repuesto");
+                });
+
             modelBuilder.Entity("DLeon_Asociados_Web.Models.RepuestoOfertaProveedor", b =>
                 {
                     b.HasOne("DLeon_Asociados_Web.Models.Proveedores", "Proveedor")
@@ -805,11 +875,18 @@ namespace DLeon_Asociados_Web.Migrations
 
                     b.Navigation("CategoriasPiezas");
 
+                    b.Navigation("DetallesRepuestos");
+
                     b.Navigation("Marcas");
 
                     b.Navigation("ModelosVehiculos");
 
                     b.Navigation("Repuestos");
+                });
+
+            modelBuilder.Entity("DLeon_Asociados_Web.Models.Repuestos", b =>
+                {
+                    b.Navigation("DetallesProveedores");
                 });
 
             modelBuilder.Entity("DLeon_Asociados_Web.Models.Vehiculos", b =>

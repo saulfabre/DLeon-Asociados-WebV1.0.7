@@ -132,6 +132,15 @@
     color: #1748b5;
 }
 
+::deep .descripcion-proveedor {
+    display: inline-block;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+    white-space: nowrap;
+}
+
 .estado-vacio {
     display: flex;
     min-height: 120px;
